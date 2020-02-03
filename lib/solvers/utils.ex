@@ -19,7 +19,7 @@ defmodule Colins.Solvers.Utils do
             processed_inputs = Map.get(acc,"processed_inputs")
             processed_inputs = Map.put(processed_inputs,input_name,edited_input_definition)
             acc = Map.put(acc, "processed_inputs", processed_inputs)
-            acc = Map.put(acc,"subfunction_cache",new_subfunction_cache)
+            Map.put(acc,"subfunction_cache",new_subfunction_cache)
 
         end)
 
@@ -35,7 +35,7 @@ defmodule Colins.Solvers.Utils do
     end
 
     # Get the previous timepoint data
-    def parse_input({:dynamic,node_id},timepoint,subfunction_cache,edge_id,step_size) do
+    def parse_input({:dynamic,node_id},timepoint,subfunction_cache,_edge_id,step_size) do
 
         #value = Colins.Nodes.MasterNode.get_timepoint_data(node_id,(timepoint - step_size))
 
@@ -44,14 +44,13 @@ defmodule Colins.Solvers.Utils do
       {data,subfunction_cache} = case Map.has_key?(subfunction_cache,node_id) do
           
             true -> {Map.get(subfunction_cache,node_id),subfunction_cache}
-            false -> data = Colins.Nodes.MasterNode.get_timepoint_data(node_id,(timepoint - step_size))
-                     {data,Map.put(subfunction_cache,node_id,data)}
+            false -> {Colins.Nodes.MasterNode.get_timepoint_data(node_id,(timepoint - step_size)),Map.put(subfunction_cache,node_id,data)}
         end
 
 
     end
 
-    def parse_input({:constant,number},timepoint,subfunction_cache,_edge_id,_step_size) do
+    def parse_input({:constant,number},_timepoint,subfunction_cache,_edge_id,_step_size) do
 
       {number,subfunction_cache}
 
@@ -82,7 +81,7 @@ defmodule Colins.Solvers.Utils do
 
     end
 
-    def parse_input({:get_subfunction_data,:timepoint,module,parse_function},timepoint,subfunction_cache,edge_id,step_size) do
+    def parse_input({:get_subfunction_data,:timepoint,module,parse_function},timepoint,subfunction_cache,_edge_id,step_size) do
 
       # Get the subfunction scratchpad and previous timepoint value
       #IO.inspect(module_parse_function)
@@ -92,7 +91,7 @@ defmodule Colins.Solvers.Utils do
 
     end
 
-    def parse_input({:get_subfunction_data,node_id,solver_id,variable_names,module,parse_function},timepoint,subfunction_cache,edge_id,step_size) do
+    def parse_input({:get_subfunction_data,node_id,solver_id,variable_names,module,parse_function},timepoint,subfunction_cache,_edge_id,step_size) do
 
       # Get the subfunction scratchpad and previous timepoint value
       #data = Colins.Nodes.MasterNode.get_timepoint_data_and_multiple_subfunction_values(node_id,(timepoint - step_size),solver_id,variable_names)
@@ -194,7 +193,7 @@ defmodule Colins.Solvers.Utils do
           edited_input_definition = case {input_var,output_var} do
 
              {a,b} when (a == b) -> {:get_edge_data,edge_id,variable_names,module,get_output_parse_function(ki)}
-             {a,b} when (a == :timepoint) -> {:get_edge_data,:timepoint,variable_names,module,get_timepoint_parse_function(ki)}
+             {a,_} when (a == :timepoint) -> {:get_edge_data,:timepoint,variable_names,module,get_timepoint_parse_function(ki)}
              _ -> {input_type,input_var}
 
           end
@@ -218,9 +217,9 @@ defmodule Colins.Solvers.Utils do
             new_input_type = case input_definition do
 
               # If input_definition == {:dynamic,:timepoint}
-              {input_type,node_id} when (node_id == :timepoint) -> {:get_subfunction_data,:timepoint,module,get_timepoint_parse_function(ki)}
+              {_,node_id} when (node_id == :timepoint) -> {:get_subfunction_data,:timepoint,module,get_timepoint_parse_function(ki)}
               # If input_definition == {:dynamic,node_id}
-              {input_type,node_id} when (input_type == :dynamic) -> {:get_subfunction_data,node_id,solver_id,variable_names,module,get_output_parse_function(ki)}
+              {input_type,_} when (input_type == :dynamic) -> {:get_subfunction_data,node_id,solver_id,variable_names,module,get_output_parse_function(ki)}
               # Else
                 _ -> input_definition
 
@@ -250,42 +249,17 @@ defmodule Colins.Solvers.Utils do
 
     def build_stepper_id_for_new_step_size(stepper_id,step_size) do
 
-        # Explode on edge_id _
-        # 1st element is atom name + solver type
-        # 2nd element is integer
-        # 3rd element is decimal
-
-        #element_list = String.split(edge_id,"_")
-
-        #[ atom_name | [ integer_val | [ decimal_val | _ ] ] ] = String.split(Atom.to_string(stepper_id),"_")
-
         [ solver_type | [ old_integer_val | [ old_decimal_val | _ ] ] ] = String.split(Atom.to_string(stepper_id),"_")
-
-#        IO.inspect("here")
-
-#        IO.inspect(atom_name)
-        #IO.inspect(integer_val)
-        #IO.inspect(decimal_val)
-
-        #old_step_size = String.to_float(integer_val <> "." <> decimal_val)
-
-       # IO.inspect(old_step_size)
 
         [ integer_val | [ decimal_val | _ ] ] = String.split(Float.to_string(Float.round(step_size,11)),".")
 
-#        IO.inspect(integer_val)
-#        IO.inspect(decimal_val)
-
         new_stepper_id = String.to_atom(solver_type <> "_" <> integer_val <> "_" <> decimal_val)
-
-#        IO.inspect(new_stepper_id)
 
         new_map = Map.put(%{}, "stepper_id", new_stepper_id)
         new_map = Map.put(new_map,"solver_type",solver_type)
         new_map = Map.put(new_map, "rounded_step_size", String.to_float(integer_val <> "." <> decimal_val))
-        new_map = Map.put(new_map, "old_step_size", String.to_float(old_integer_val <> "." <> old_decimal_val))
+        Map.put(new_map, "old_step_size", String.to_float(old_integer_val <> "." <> old_decimal_val))
 
-#        IO.inspect(new_map)
     end
 
     def parse_inputs_to_send_to_scratchpad({:dynamic,node_name}) do

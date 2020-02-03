@@ -71,50 +71,6 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
 
   end
 
-  def handle_cast({:setup_simulation,sim_id,results_folder,partitions,max_timepoint,mesh_size},state) do
-
-    state = Map.put(state,"mesh_size",mesh_size)
-    #state = Map.put(state,"explicit_implicit_switch_step_size_tolerance",1.0e-6)
-    state = Map.put(state,"step_size_decimal_places",calculate_step_size_decimal_places(mesh_size,1.0e-6))
-    state = Map.put(state,"sim_id",sim_id)
-    state = Map.put(state,"results_folder",results_folder)
-
-    state = Map.put(state,"max_timepoint",max_timepoint/1)
-
-    state = Map.put(state,"partitions",partitions)
-
-    step_size_map = build_step_size_map(partitions)
-
-    state = Map.put(state,"step_size_map",step_size_map)
-
-    state = Map.put(state,"completed_timepoints",%{})
-
-    state = Map.put(state,"current_timepoint",0.0)
-
-    state = Map.put(state,"current_step_size",List.last(Enum.sort(Map.keys(step_size_map))))
-    state = Map.put(state,"smallest_step_size",List.first(Enum.sort(Map.keys(step_size_map))))
-
-    state = Map.put(state,"update_current_timepoint",:false)
-
-    state = Map.put(state,"sim_complete",:false)
-
-    state = Map.put(state,"last_completed_timepoints",%{})
-
-    state = Map.put(state,"running_partitions",[])
-
-    state = Map.put(state,"number_of_partitions",map_size(partitions))
-
-    #IO.inspect(state)
-
-    {:noreply,state}
-
-  end
-
-  def handle_cast({:set_simulation_initialisation_time_microseconds,simulation_initialisation_time_microseconds},state) do
-
-    {:noreply,Map.put(state,"simulation_initialisation_time_microseconds",simulation_initialisation_time_microseconds)}
-
-  end
 
   @doc " Build a map of step sizes and partitions:
         %{ step_size => [ partition_ids ] }"
@@ -122,7 +78,7 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
 
     # Build a map of step sizes and partitions:
     # %{ step_size => [ partition_ids ] }
-    step_size_map = Enum.reduce(partitions,%{},fn({partition_id,solver_data},acc) ->
+    Enum.reduce(partitions,%{},fn({partition_id,solver_data},acc) ->
 
       step_size = Map.get(solver_data,"start_step_size")
 
@@ -135,51 +91,6 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
       end
 
     end)
-
-  end
-
-  def handle_cast(:start_simulation,state) do
-
-    state = Map.put(state,"simulation_start_time",Timex.now())
-
-    {:noreply,run_new_timepoint(state,0.0)}
-
-  end
-
-  def handle_cast({:notify_edges_complete},state) do
-
-    Colins.Nodes.Controller.commit_timepoint_queue()
-
-    {:noreply,state}
-
-  end
-
-  def handle_cast({:notify_edges_complete_with_step_size_change,new_step_size,partition_id},state) do
-
-    # Update the step sizes for this partition
-    # Check whether it is the correct one to run (based on largest first).
-    # Rerun step.
-
-    #mesh_size = Map.get(state,"mesh_size")
-    #explicit_implicit_switch_step_size_tolerance = 1.0e-6
-
-    #explicit_implicit_switch_step_size_tolerance = Map.get(state,"explicit_implicit_switch_step_size_tolerance")
-    explicit_implicit_switch_step_size_tolerance = Map.get(Map.get(Map.get(state,"partitions"),partition_id),"explicit_implicit_switch_step_size_tolerance")
-
-   # IO.inspect("explicit_implicit_switch_step_size_tolerance")
-    #IO.inspect(explicit_implicit_switch_step_size_tolerance)
-
-    # if the step size is smaller than the 1.0e-6, then move to the implicit backward euler.
-    state = case {new_step_size,explicit_implicit_switch_step_size_tolerance} do
-
-      {a,b} when (a <= b) -> # Move to the implicit solver
-                              move_partition_to_implicit_solver(state,new_step_size,partition_id)
-      _ -> # Update the step sizes for the explicit solver
-          update_step_sizes_and_rerun_step(state,new_step_size,partition_id)
-
-    end
-
-    {:noreply,state}
 
   end
 
@@ -222,15 +133,11 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
     # Update the step sizes and then run the new timepoint
     # Step size set to 0.1 as per the LASSIE config, unless that is already running, in which case use the specified one
 
-    state = case current_running_solver_type do
+    case current_running_solver_type do
        "explicit" -> run_new_timepoint(update_step_sizes(state,implicit_step_size,partition_id),Map.get(state,"current_timepoint"))
        "implicit" -> run_new_timepoint(update_step_sizes(state,new_step_size,partition_id),Map.get(state,"current_timepoint"))
     end
 
-
-    #IO.inspect(state)
-
-    #System.halt(0)
 
   end
 
@@ -256,7 +163,6 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
     # move the partition from the step size map
     step_size_map = Map.get(state,"step_size_map")
     current_step_size = Map.get(state,"current_step_size")
-    smallest_step_size = Map.get(state,"smallest_step_size")
 
     new_step_size_map = Enum.reduce(step_size_map,%{},fn({step_size,partition_list},acc) ->
 
@@ -269,7 +175,7 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
         {a,b,c} when (a == b and c > 1) -> Map.put(acc,step_size,List.delete(partition_list,partition_id))
 
         # 3. not this current step size, don't edit (add to the acc)
-        {a,b,c} when (a != b) -> Map.put(acc,step_size,partition_list)
+        {a,b,_} when (a != b) -> Map.put(acc,step_size,partition_list)
 
       end
 
@@ -297,7 +203,7 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
 
     # update the current step size with this one if its smaller - TODO: Is this correct? for multi-rate solvers probably not!
     # Probably want to set this during the calculation of the next step size
-    state = Map.put(state,"current_step_size",smallest_step_size)
+     Map.put(state,"current_step_size",smallest_step_size)
 
   end
 
@@ -305,7 +211,6 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
 
     current_timepoint = Map.get(state,"current_timepoint")
     current_step_size = Map.get(state,"current_step_size")
-    mesh_size = Map.get(state,"mesh_size")
     next_timepoint = Float.round(current_timepoint + current_step_size,11)
 
     smallest_step_size = Map.get(state,"smallest_step_size")
@@ -340,33 +245,12 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
     end
 
     # If the current_step_size is not the smallest_step_size, and there is more than 1 step_size, get the next largest step size
-    state = case running_interpolation do
+    case running_interpolation do
 
       :true -> set_next_largest_step_size(state)
       :false -> run_next_step(state)
 
     end
-
-  end
-
-  def handle_cast(:notify_node_commit_complete,state) do
-
-    # If there is more than 1 partition (ie more than 1 rate - run this as a multi-rate version)
-    state = case Map.get(state,"number_of_partitions") do
-
-        x when x > 1 -> multi_rate_interpolate(state)
-        _ -> run_next_step(state)
-
-    end
-
-    # Wait for the interpolation to finish.
-    {:noreply, state}
-
-  end
-
-  def handle_cast(:notify_node_interpolation_complete,state) do
-
-    {:noreply,run_next_step(state)}
 
   end
 
@@ -632,7 +516,7 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
     IO.inspect(state)
 
     # Tell all the edges to write to file.
-    Enum.map(Map.get(state,"partitions"),fn({partition_id,partition_data}) ->
+    Enum.map(Map.get(state,"partitions"),fn({_partition_id,partition_data}) ->
 
       Colins.Solvers.SolverServer.write_edges(Map.get(partition_data,"solver_id"))
     end)
@@ -642,6 +526,119 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
     write_out_benchmark_data(state)
 
     state
+
+  end
+
+
+  def handle_cast(:notify_node_commit_complete,state) do
+
+    # If there is more than 1 partition (ie more than 1 rate - run this as a multi-rate version)
+    state = case Map.get(state,"number_of_partitions") do
+
+      x when x > 1 -> multi_rate_interpolate(state)
+      _ -> run_next_step(state)
+
+    end
+
+    # Wait for the interpolation to finish.
+    {:noreply, state}
+
+  end
+
+  def handle_cast(:notify_node_interpolation_complete,state) do
+
+    {:noreply,run_next_step(state)}
+
+  end
+
+  def handle_cast({:setup_simulation,sim_id,results_folder,partitions,max_timepoint,mesh_size},state) do
+
+    state = Map.put(state,"mesh_size",mesh_size)
+    #state = Map.put(state,"explicit_implicit_switch_step_size_tolerance",1.0e-6)
+    state = Map.put(state,"step_size_decimal_places",calculate_step_size_decimal_places(mesh_size,1.0e-6))
+    state = Map.put(state,"sim_id",sim_id)
+    state = Map.put(state,"results_folder",results_folder)
+
+    state = Map.put(state,"max_timepoint",max_timepoint/1)
+
+    state = Map.put(state,"partitions",partitions)
+
+    step_size_map = build_step_size_map(partitions)
+
+    state = Map.put(state,"step_size_map",step_size_map)
+
+    state = Map.put(state,"completed_timepoints",%{})
+
+    state = Map.put(state,"current_timepoint",0.0)
+
+    state = Map.put(state,"current_step_size",List.last(Enum.sort(Map.keys(step_size_map))))
+    state = Map.put(state,"smallest_step_size",List.first(Enum.sort(Map.keys(step_size_map))))
+
+    state = Map.put(state,"update_current_timepoint",:false)
+
+    state = Map.put(state,"sim_complete",:false)
+
+    state = Map.put(state,"last_completed_timepoints",%{})
+
+    state = Map.put(state,"running_partitions",[])
+
+    state = Map.put(state,"number_of_partitions",map_size(partitions))
+
+    #IO.inspect(state)
+
+    {:noreply,state}
+
+  end
+
+  def handle_cast({:set_simulation_initialisation_time_microseconds,simulation_initialisation_time_microseconds},state) do
+
+    {:noreply,Map.put(state,"simulation_initialisation_time_microseconds",simulation_initialisation_time_microseconds)}
+
+  end
+
+
+  def handle_cast(:start_simulation,state) do
+
+    state = Map.put(state,"simulation_start_time",Timex.now())
+
+    {:noreply,run_new_timepoint(state,0.0)}
+
+  end
+
+  def handle_cast({:notify_edges_complete},state) do
+
+    Colins.Nodes.Controller.commit_timepoint_queue()
+
+    {:noreply,state}
+
+  end
+
+  def handle_cast({:notify_edges_complete_with_step_size_change,new_step_size,partition_id},state) do
+
+    # Update the step sizes for this partition
+    # Check whether it is the correct one to run (based on largest first).
+    # Rerun step.
+
+    #mesh_size = Map.get(state,"mesh_size")
+    #explicit_implicit_switch_step_size_tolerance = 1.0e-6
+
+    #explicit_implicit_switch_step_size_tolerance = Map.get(state,"explicit_implicit_switch_step_size_tolerance")
+    explicit_implicit_switch_step_size_tolerance = Map.get(Map.get(Map.get(state,"partitions"),partition_id),"explicit_implicit_switch_step_size_tolerance")
+
+    # IO.inspect("explicit_implicit_switch_step_size_tolerance")
+    #IO.inspect(explicit_implicit_switch_step_size_tolerance)
+
+    # if the step size is smaller than the 1.0e-6, then move to the implicit backward euler.
+    state = case {new_step_size,explicit_implicit_switch_step_size_tolerance} do
+
+      {a,b} when (a <= b) -> # Move to the implicit solver
+        move_partition_to_implicit_solver(state,new_step_size,partition_id)
+      _ -> # Update the step sizes for the explicit solver
+        update_step_sizes_and_rerun_step(state,new_step_size,partition_id)
+
+    end
+
+    {:noreply,state}
 
   end
 

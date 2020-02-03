@@ -116,7 +116,7 @@ defmodule Colins.Solvers.TrapezoidalRule do
   end
 
 
-  def run_first_estimate(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_first_estimate(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
     #IO.inspect(Atom.to_string(solver_id) <> " k1 running")
 

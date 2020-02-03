@@ -49,14 +49,14 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
   end
 
-  def run_k1(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k1(solver_id,edge_id,edge_definition,node_data,_step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
     #IO.inspect(Atom.to_string(solver_id) <> " k1 running")
 
     inputs = Map.get(edge_definition,"inputs")
     outputs = Map.get(edge_definition,"outputs")
 
-    output_var= Colins.Solvers.Utils.get_output_var(outputs)
+    #_output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
     number_of_inputs = length(Map.values(inputs))
 
@@ -87,7 +87,7 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
   end
 
-  def run_k2(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k2(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
     # Get the value of k1 and the node timepoint data,
     # Add the node timepoint data and k1 together before running the function
@@ -96,7 +96,7 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
     inputs = Map.get(edge_definition,"inputs")
     outputs = Map.get(edge_definition,"outputs")
 
-    output_var= Colins.Solvers.Utils.get_output_var(outputs)
+   # output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
     number_of_inputs = length(Map.values(inputs))
 
@@ -130,7 +130,7 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
   end
 
-  def run_k3(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k3(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
     # Get the value of k2 and the node timepoint data,
     # Add the node timepoint data and k1 together before running the function
@@ -139,7 +139,7 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
       inputs = Map.get(edge_definition,"inputs")
       outputs = Map.get(edge_definition,"outputs")
 
-      output_var= Colins.Solvers.Utils.get_output_var(outputs)
+#      output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
       number_of_inputs = length(Map.values(inputs))
 
@@ -174,12 +174,12 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
   end
 
-  def run_k4(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k4(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
       inputs = Map.get(edge_definition,"inputs")
       outputs = Map.get(edge_definition,"outputs")
 
-      output_var= Colins.Solvers.Utils.get_output_var(outputs)
+#      output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
       number_of_inputs = length(Map.values(inputs))
 
@@ -215,12 +215,12 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
 
   @doc "Calculate the h/2 values for error calculation"
-  def run_k5(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k5(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
       inputs = Map.get(edge_definition,"inputs")
       outputs = Map.get(edge_definition,"outputs")
 
-      output_var= Colins.Solvers.Utils.get_output_var(outputs)
+   #   output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
       number_of_inputs = length(Map.values(inputs))
 
@@ -260,12 +260,12 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
 
   @doc "Calculate the h/2 values for error calculation"
-  def run_k6(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k6(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
       inputs = Map.get(edge_definition,"inputs")
       outputs = Map.get(edge_definition,"outputs")
 
-      output_var= Colins.Solvers.Utils.get_output_var(outputs)
+     # output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
       number_of_inputs = length(Map.values(inputs))
 
@@ -300,14 +300,14 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
     end
 
-  def calculate_weighted_average_and_error(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,local_error_maximum) do
+  def calculate_weighted_average_and_error(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,local_error_maximum) do
 
       #local_error_maximum = 1.0e-12
 
       inputs = Map.get(edge_definition,"inputs")
       outputs = Map.get(edge_definition,"outputs")
 
-      output_var= Colins.Solvers.Utils.get_output_var(outputs)
+    # output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
       previous_timepoint_value = Map.get(node_data,:timepoint)
       k1 = Map.get(step_calculated_data,"k1")
@@ -327,50 +327,14 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
       error_estimate_modulus = Colins.Utilities.Math.sign_pos(sixth_order_value - fifth_order_value)
 
-      #optimal_step_size = step_size * Math.pow((local_error_maximum * step_size)/(2*error_estimate_modulus),1/4)
-
-      #error_estimate_modulus / step_size
-
-      #local_error_maximum = 1.0e-12
-
-      #IO.inspect("here")
-      #IO.inspect(fifth_order_value)
-      #IO.inspect(sixth_order_value)
-      #IO.inspect(error_estimate_modulus)
-      #IO.inspect(step_size)
-
-     # IO.inspect(error_estimate_modulus)
-
       error_estimate_div_step_size = error_estimate_modulus / step_size
-
-      #IO.inspect("here")
-      #IO.inspect(error_estimate_div_step_size)
-      #IO.inspect(local_error_maximum)
-      #IO.inspect(step_size)
 
       optimal_step_size = case error_estimate_modulus do
 
           0.0 -> step_size
-          _ -> optimal_step_size = (Math.pow(0.84 * (local_error_maximum / error_estimate_div_step_size),1/4) * step_size)
+          _ -> (Math.pow(0.84 * (local_error_maximum / error_estimate_div_step_size),1/4) * step_size)
 
       end
-
-   # IO.inspect("fifth_order_gradient")
-   # IO.inspect(fifth_order_gradient)
-   # IO.inspect("sixth_order_gradient")
-   # IO.inspect(sixth_order_gradient)
-   #   IO.inspect("local_error_maximum")
-   #   IO.inspect(local_error_maximum)
-   #   IO.inspect("fifth_order_value")
-   #   IO.inspect(fifth_order_value)
-   #   IO.inspect("sixth_order_value")
-   #   IO.inspect(sixth_order_value)
-   #   IO.inspect("error_estimate_div_step_size")
-   #   IO.inspect(error_estimate_div_step_size)
-   #   IO.inspect("optimal_step_size")
-   #   IO.inspect(optimal_step_size)
-#
-#      System.halt(0)
 
       returned_values = %{"error_estimate" => error_estimate_modulus, "optimal_step_size" => optimal_step_size}
 

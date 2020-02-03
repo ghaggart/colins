@@ -14,12 +14,7 @@ defmodule Colins.Nodes.MasterNode do
 
         node_id = :ncb_name
 
-        Can have multiple backends  - Erlang binary files (.ext)
-                                    - HDF5 files (.hdf)
-                                    - Text (.txt)
-                                    - Databases.
-                                    - Websockets
-                                    - Simple (.txt from this file).
+        Backend - (.txt from this file).
 
         timepoint_data = %{0 => 0, 1 => 20}  etc
 

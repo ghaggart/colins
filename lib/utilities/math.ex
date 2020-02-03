@@ -27,11 +27,11 @@ defmodule Colins.Utilities.Math do
     case String.contains?(mesh_size_string,["e"]) do
 
       # calculate based 1.0e-5
-      true -> [ rhs | lhs ] = Enum.reverse(String.split(mesh_size_string,"e"))
+      true -> [ rhs | _ ] = Enum.reverse(String.split(mesh_size_string,"e"))
               (0 - String.to_integer(rhs)) + 1
 
       # calculate based on 0.01
-      false -> [ rhs | lhs ] = Enum.reverse(String.split(mesh_size_string,"."))
+      false -> [ rhs | _ ] = Enum.reverse(String.split(mesh_size_string,"."))
                String.length(rhs)
 
     end
@@ -61,7 +61,7 @@ defmodule Colins.Utilities.Math do
       lambda_string = String.replace(lambda_string,"log2",":math.log2")
       lambda_string = String.replace(lambda_string,"pow",":math.pow")
       lambda_string = String.replace(lambda_string,"sqrt",":math.sqrt")
-      lambda_string = String.replace(lambda_string,"pi",":math.pi")
+      String.replace(lambda_string,"pi",":math.pi")
 
   end
 
