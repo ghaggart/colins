@@ -107,14 +107,12 @@ defmodule Colins.Solvers.RungeKutta4 do
     #[ :run_k1, :run_k2, :run_k3, :run_k4, :calculate_weighted_average_and_error ]
   end
   # Run the output as normal
-  def run_k1(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k1(solver_id,edge_id,edge_definition,node_data,_step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
     #IO.inspect(Atom.to_string(solver_id) <> " k1 running")
 
     inputs = Map.get(edge_definition,"inputs")
     outputs = Map.get(edge_definition,"outputs")
-
-    output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
     number_of_inputs = length(Map.values(inputs))
 
@@ -192,15 +190,13 @@ defmodule Colins.Solvers.RungeKutta4 do
 
   end
 
-  def run_k3(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_k3(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
     # Get the value of k1 and the node timepoint data,
     # Add the node timepoint data and k1 together before running the function
     # As per the algorithm above
 
     inputs = Map.get(edge_definition,"inputs")
     outputs = Map.get(edge_definition,"outputs")
-
-    output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
     number_of_inputs = length(Map.values(inputs))
 

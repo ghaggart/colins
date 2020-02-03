@@ -10,7 +10,7 @@ defmodule Colins.Solvers.Basic do
 
     end
 
-    def solve(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,mesh_size,local_error_maximum) do
+    def solve(solver_id,edge_id,edge_definition,node_data,_step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
 
         inputs = Map.get(edge_definition,"inputs")
         outputs = Map.get(edge_definition,"outputs")

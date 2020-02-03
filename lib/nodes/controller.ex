@@ -98,7 +98,7 @@ defmodule Colins.Nodes.Controller do
 
     def handle_cast(:reset_timestep_data,state) do
 
-        Enum.map(Map.get(state,"node_map"),fn({node_id,node_data}) ->
+        Enum.map(Map.get(state,"node_map"),fn({node_id,_node_data}) ->
 
             Colins.Nodes.MasterNode.reset_timestep_data(node_id)
         end)
@@ -112,7 +112,7 @@ defmodule Colins.Nodes.Controller do
         state = Map.put(state,"sim_id",sim_id)
         state = Map.put(state,"results_folder",results_folder)
 
-        node_job_completion_record = Enum.reduce(node_map,%{},fn({node_id,data},acc) ->
+        node_job_completion_record = Enum.reduce(node_map,%{},fn({node_id,_data},acc) ->
 
             Map.put(acc,node_id,:complete)
         end)
@@ -129,11 +129,10 @@ defmodule Colins.Nodes.Controller do
         Logger.debug("\nInterpolating all nodes...")
 
         node_map = Map.get(state,"node_map")
-        node_job_completion_record = Map.get(state,"node_job_completion_record")
 
         #Colins.Nodes.MasterNode.interpolate_data(:node_two,smallest_step_size,stepper_timepoint)
 
-        node_job_completion_record = Enum.reduce(node_map,%{},fn({node_id,node_data},acc) ->
+        node_job_completion_record = Enum.reduce(node_map,%{},fn({node_id,_node_data},acc) ->
 
             # If this is the special timepoint node - do not interpolate
             case node_id do
@@ -176,9 +175,8 @@ defmodule Colins.Nodes.Controller do
         Logger.debug("\nCommitting timepoint queue...")
 
         node_map = Map.get(state,"node_map")
-        node_job_completion_record = Map.get(state,"node_job_completion_record")
 
-        node_job_completion_record = Enum.reduce(node_map,%{},fn({node_id,node_data},acc) ->
+        node_job_completion_record = Enum.reduce(node_map,%{},fn({node_id,_node_data},acc) ->
 
             #Colins.Nodes.MasterNode.commit_rates(node_id,timepoint,step_size,smallest_step_size)
             Colins.Nodes.MasterNode.commit_all_rates(node_id)
@@ -220,7 +218,7 @@ defmodule Colins.Nodes.Controller do
 
         # Build the entire map
 
-        node_write_complete_map = Enum.reduce(Map.get(state,"node_map"),%{},fn({node_id,data},acc) ->
+        node_write_complete_map = Enum.reduce(Map.get(state,"node_map"),%{},fn({node_id,_data},acc) ->
 
             #Colins.Nodes.NodeTimepointCache.write_to_file(node_cache_id,results_folder)
 
@@ -244,7 +242,7 @@ defmodule Colins.Nodes.Controller do
 
         first_chunk = List.first(chunked_map_list)
 
-        node_write_complete_map = Enum.reduce(first_chunk,node_write_complete_map,fn({node_id,status},acc) ->
+        node_write_complete_map = Enum.reduce(first_chunk,node_write_complete_map,fn({node_id,_status},acc) ->
 
             Colins.Nodes.MasterNode.write_to_file(node_id,results_path)
             Map.put(acc,node_id,:running)

@@ -43,7 +43,7 @@ defmodule Colins.MainController do
         # Configure logger
         Logger.configure_backend(
             {LoggerFileBackend, :debug_log},
-            path: Path.join([Map.get(options,"results_folder"),Map.get(options,"sim_id"),"debug.log"]),
+            path: Path.join([Map.get(options,"results_folder"),Map.get(options,"sim_id"),"debug.log"])
         )
 
         Logger.info("\nSimulation options: " <> inspect(options))
@@ -196,8 +196,6 @@ defmodule Colins.MainController do
 
         network_topology = Map.get(options,"network_topology")
 
-        edges = Map.get(network_topology,"edges")
-
         partitions = Map.get(network_topology,"partitions")
 
         partition_edge_map = Map.get(state,"partition_edge_map")
@@ -220,21 +218,20 @@ defmodule Colins.MainController do
 
         state = Map.put(state,"options",Map.put(options,"network_topology",Map.put(network_topology,"partitions",new_partition_map)))
 
-        new_edge_map = Enum.reduce(new_partition_map,%{},fn({partition_id,partition_data},acc) ->
+        new_edge_map = Enum.reduce(new_partition_map,%{},fn({_partition_id,partition_data},acc) ->
 
             existing_edge_data = Map.get(partition_edge_map,Map.get(partition_data,"solver_id"))
 
             Map.put(acc,Map.get(partition_data,"explicit_solver_id"),existing_edge_data)
         end)
 
-        state = Map.put(state,"partition_edge_map",new_edge_map)
-
+        Map.put(state,"partition_edge_map",new_edge_map)
 
     end
 
     def build_solver_servers_for_partition("dODE",solver_id,partition_data,partition_id,mesh_size,edge_map,local_error_minimum,local_error_maximum,_explicit_list,_implicit_list) do
 
-        [ solver_type | tail ] = String.split(Atom.to_string(solver_id),"_")
+        [ _ | tail ] = String.split(Atom.to_string(solver_id),"_")
 
         explicit_solver_id = String.to_atom("RungeKuttaFehlberg_" <> Enum.join(tail,"_"))
         implicit_solver_id = String.to_atom("BackwardEuler_" <> Enum.join(tail,"_"))
@@ -246,7 +243,7 @@ defmodule Colins.MainController do
         partition_data = Map.put(partition_data,"explicit_solver_id",explicit_solver_id)
         partition_data = Map.put(partition_data,"implicit_solver_type","BackwardEuler")
         partition_data = Map.put(partition_data,"implicit_solver_id",implicit_solver_id)
-        partition_data = Map.put(partition_data,"solver_type_running","explicit")
+        Map.put(partition_data,"solver_type_running","explicit")
 
     end
 

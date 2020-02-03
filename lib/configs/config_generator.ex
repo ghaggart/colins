@@ -5,7 +5,7 @@ require Math
 defmodule Colins.Configs.ConfigGenerator do
 
 
-    def build_config_with_topology(sim_id,max_timepoint,results_folder,network_topology,mesh_size) do
+    def build_config_with_topology(sim_id,max_timepoint,_results_folder,network_topology,mesh_size) do
 
       %{
         "sim_id" => sim_id,
@@ -68,7 +68,7 @@ defmodule Colins.Configs.ConfigGenerator do
 
         network_topology = sanitise_network_topology(Map.get(config,"network_topology"))
 
-        config = Map.put(config,"network_topology",network_topology)
+        Map.put(config,"network_topology",network_topology)
 
     end
 
@@ -81,8 +81,6 @@ defmodule Colins.Configs.ConfigGenerator do
         processed_edges = Enum.reduce(edges,%{},fn({edge_id,edge_data},acc) ->
 
             lambda_str = Colins.Utilities.Math.convert_math_to_elixir(Map.get(edge_data,"lambda"))
-
-            IO.inspect(lambda_str)
 
             #IO.inspect(lambda_str)
             {lambda,_} = Code.eval_string(lambda_str)
@@ -122,10 +120,7 @@ defmodule Colins.Configs.ConfigGenerator do
 
     def sanitise_edge_input_map(input_map) do
 
-        new_input_map = Enum.reduce(input_map,%{},fn({input_name,input_list},acc) ->
-
-            IO.inspect(input_name)
-            IO.inspect(input_list)
+        Enum.reduce(input_map,%{},fn({input_name,input_list},acc) ->
 
             input_tuple = Enum.reduce(input_list,{},fn(element,acc) ->
                 Tuple.append(acc,element)

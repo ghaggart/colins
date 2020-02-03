@@ -11,8 +11,12 @@ defmodule Colins.MixProject do
      # build_embedded: Mix.env == :prod,
      # start_permanent: Mix.env == :prod,
       deps: deps(),
-       escript: escript(),
-      # brewery: brewery(),
+      escript: escript(),
+      description: description(),
+      package: package(),
+      deps: deps(),
+      name: "colins",
+      source_url: "https://github.com/ghaggart/colins"
     ]
   end
 
@@ -20,7 +24,6 @@ defmodule Colins.MixProject do
   def application do
     [
       extra_applications: [:logger,:timex,:yaml_elixir,:logger_file_backend,:math,:erlport],
-   #   extra_applications: [:logger,:timex,:yaml_elixir,:logger_file_backend,:math],
       mod: {Colins,[]},
     ]
   end
@@ -30,10 +33,7 @@ defmodule Colins.MixProject do
     [
       {:timex, "~> 3.0"},
       {:tzdata, "~> 0.1.8", override: true},
-     # {:tzdata, ">= 0.1.8"},
-    #  {:brewery, "== 0.1.1"},
       {:yaml_elixir, "== 1.3.1"},
-      #{:expline, "~> 0.1.0"}
       {:logger_file_backend, ">= 0.0.0"},
       {:math,">= 0.0.0"},
       {:erlport, "~> 0.9"},
@@ -52,6 +52,22 @@ defmodule Colins.MixProject do
        main_module: Colins,
        out_file: "./colinsb"
       ]
+  end
+
+  defp description() do
+    "COLINS is an adaptive ODE solver that leverages Elixir Actors for concurrency"
+  end
+
+  defp package() do
+    [
+      # This option is only needed when you don't want to use the OTP application name
+      name: "colins",
+      # These are the default files included in the package
+      files: ~w(lib priv .formatter.exs mix.exs README* readme* LICENSE*
+                license* CHANGELOG* changelog* src),
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/ghaggart/colins"}
+    ]
   end
 end
 

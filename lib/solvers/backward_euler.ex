@@ -61,14 +61,14 @@ defmodule Colins.Solvers.BackwardEuler do
     # DO NOT INCLUDE :timepoint VARS!
 
     #string = "fn(input1,input2) -> (input1 * 1/2) + (input2 * -1/2) end"
-    dydfx_lambda_input_string = Enum.reduce(partial_derivative_map,"fn(",fn({variable_name,expression},acc) ->
+    dydfx_lambda_input_string = Enum.reduce(partial_derivative_map,"fn(",fn({variable_name,_expression},acc) ->
       variable_name = to_string(variable_name)
       #case Map.get(inputs,variable_name) do
       #  _ -> acc <> variable_name <> ","
       #end
       acc <> variable_name <> ","
     end)
-    dydfx_lambda_expr_string = Enum.reduce(partial_derivative_map,"",fn({variable_name,expression},acc) ->
+    dydfx_lambda_expr_string = Enum.reduce(partial_derivative_map,"",fn({variable_name,_expression},acc) ->
 
       variable_name = to_string(variable_name)
 
@@ -89,9 +89,6 @@ defmodule Colins.Solvers.BackwardEuler do
   def build_newton_raphson_edge_definitions(solver_id,edge_id,edge_definition) do
 
     inputs = Map.get(edge_definition,"inputs")
-  #  IO.inspect(inputs)
-    outputs = Map.get(edge_definition,"outputs")
-    lambda = Map.get(edge_definition,"lambda")
     lambda_string = Map.get(edge_definition,"lambda_string")
 
     [ lhs | [ rhs | _ ] ] = String.split(lambda_string," -> ")
@@ -116,7 +113,7 @@ defmodule Colins.Solvers.BackwardEuler do
   end
 
 
-  def run_first_estimate(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+  def run_first_estimate(solver_id,edge_id,edge_definition,node_data,_step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
     #IO.inspect(Atom.to_string(solver_id) <> " k1 running")
 
@@ -164,7 +161,7 @@ defmodule Colins.Solvers.BackwardEuler do
 
   end
 
-  def run_newton_raphson(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,newton_raphson_edge_definition) do
+  def run_newton_raphson(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,newton_raphson_edge_definition) do
 
     # 1. Calculate the new estimate using the partial derivative functions
     # 2. Use this value to calculate the result of big_F (ie how close to zero it is)

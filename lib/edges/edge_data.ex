@@ -79,6 +79,12 @@ defmodule Colins.Edges.EdgeData do
 
   end
 
+  def commit_timepoint_data(edge_id,timepoint) do
+
+    GenServer.cast(edge_id,{:commit_timepoint_data,timepoint})
+
+  end
+
   def reset_timestep_data(edge_id) do
 
     GenServer.cast(edge_id,{:reset_timestep_data})
@@ -92,12 +98,6 @@ defmodule Colins.Edges.EdgeData do
     state = Map.put(state,"edge_scratchpad",%{})
 
     {:noreply,state}
-
-  end
-
-  def commit_timepoint_data(edge_id,timepoint) do
-
-    GenServer.cast(edge_id,{:commit_timepoint_data,timepoint})
 
   end
 
@@ -228,7 +228,7 @@ defmodule Colins.Edges.EdgeData do
     second_element_keys = case length(list_of_timepoints) do
 
         0 -> []
-        _ -> [ first | [ second | _ ]] = list_of_timepoints
+        _ -> [ _ | [ second | _ ]] = list_of_timepoints
              Map.keys(Map.get(timepoint_data,second))
 
     end

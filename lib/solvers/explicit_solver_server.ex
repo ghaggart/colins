@@ -16,16 +16,16 @@ defmodule Colins.Solvers.ExplicitSolverServer do
     solver_subfunction_sequence = apply(solver_module_name,:get_solve_sequence,[])
 
     # Get the unique dynamic node list for loading data at first subfunction step
-    unique_dynamic_nodes = Enum.reduce(edge_definitions,[],fn({edge_id,edge_definition},acc) ->
+    unique_dynamic_nodes = Enum.reduce(edge_definitions,[],fn({_edge_id,edge_definition},acc) ->
       # get edge inputs, for each get value, check if in acc, if not add.
-      acc = Enum.reduce(Map.get(edge_definition,"inputs"),acc,fn({input_name,node_id},acc2) ->
+      acc = Enum.reduce(Map.get(edge_definition,"inputs"),acc,fn({_input_name,node_id},_acc2) ->
         case Enum.member?(acc, node_id) do
           false -> [ node_id | acc ]
           true -> acc
         end
       end)
 
-      Enum.reduce(Map.get(edge_definition,"outputs"),acc,fn({node_id,add_or_subtract},acc2) ->
+      Enum.reduce(Map.get(edge_definition,"outputs"),acc,fn({node_id,_add_or_subtract},_acc2) ->
         case Enum.member?(acc, node_id) do
           false -> [ node_id | acc ]
           true -> acc
@@ -75,117 +75,37 @@ defmodule Colins.Solvers.ExplicitSolverServer do
 
   end
 
-  def handle_cast({:run_edges,timepoint,step_size},state) do
-
-    # 1. If no edge definitions, get them and store them.
-
-    #IO.inspect("timepoint to run")
-    #IO.inspect(timepoint)
-
-    state = Map.put(state,"current_step_size",step_size)
-    state = Map.put(state,"current_timepoint",timepoint)
-    state = Map.put(state,"step_min_optimal_step_size",step_size)
-
-
-    # 2. Run the subfunction sequence
-
-    {:noreply,run_subfunction_sequence(state)}
-
-  end
-
-  def handle_cast(:write_edges,state) do
-
-    Enum.map(Map.get(state,"edge_definitions"),fn({edge_id,_}) ->
-
-      Colins.Edges.EdgeData.write_to_file(edge_id)
-    end)
-
-    {:noreply,state}
-
-  end
-
   def parse_returned_error_and_step_size(state,returned_data) do
 
-     #state = Map.put(state,"step_error_sum",Map.get(state,"step_error_sum") + Map.get(returned_data,"error_estimate"))
+    #state = Map.put(state,"step_error_sum",Map.get(state,"step_error_sum") + Map.get(returned_data,"error_estimate"))
 
-     # Set the step_max_error
- #   step_max_error = Map.get(state,"step_max_error")
- #   error_estimate = Map.get(returned_data,"error_estimate")
- #   step_max_error = case {error_estimate,step_max_error} do
- #     {a,b} when (a > b) -> error_estimate
- #     _ -> step_max_error
- #   end
- #   state = Map.put(state,"step_max_error",step_max_error)
- #
- #   # Set the step_min_optimal_step_size
- #   step_min_optimal_step_size = Map.get(state,"step_min_optimal_step_size")
- #   optimal_step_size = Map.get(returned_data,"optimal_step_size")
- #   step_min_optimal_step_size = case {optimal_step_size,step_min_optimal_step_size} do
- #     {a,b} when (a < b) -> optimal_step_size
- #     _ -> step_min_optimal_step_size
- #   end
- #   Map.put(state,"step_min_optimal_step_size",step_min_optimal_step_size)
- #
+    # Set the step_max_error
+    #   step_max_error = Map.get(state,"step_max_error")
+    #   error_estimate = Map.get(returned_data,"error_estimate")
+    #   step_max_error = case {error_estimate,step_max_error} do
+    #     {a,b} when (a > b) -> error_estimate
+    #     _ -> step_max_error
+    #   end
+    #   state = Map.put(state,"step_max_error",step_max_error)
+    #
+    #   # Set the step_min_optimal_step_size
+    #   step_min_optimal_step_size = Map.get(state,"step_min_optimal_step_size")
+    #   optimal_step_size = Map.get(returned_data,"optimal_step_size")
+    #   step_min_optimal_step_size = case {optimal_step_size,step_min_optimal_step_size} do
+    #     {a,b} when (a < b) -> optimal_step_size
+    #     _ -> step_min_optimal_step_size
+    #   end
+    #   Map.put(state,"step_min_optimal_step_size",step_min_optimal_step_size)
+    #
 
-     # If the error estimate is larger than the current step_max_error, set this, and the step_min_optimal_step_size to the returned values.
-     step_max_error = Map.get(state,"step_max_error")
-     error_estimate = Map.get(returned_data,"error_estimate")
-     state = case {error_estimate,step_max_error} do
-       {a,b} when (a > b) -> state = Map.put(state,"step_max_error",error_estimate)
-                             Map.put(state,"step_min_optimal_step_size", Map.get(returned_data,"optimal_step_size"))
-       _ -> state
-     end
-
-  end
-
-  # When an edge completes, take the returned_data and add it to the step_calculated_data map.
-  # step_calculated_data = {edge_id => {"k1" => 0.121, "k2" => 0.322} }
-  def handle_cast({:notify_edge_complete,edge_id,returned_data,subfunction_type},state) do
-
-    #Logger.debug("\n " <> inspect(edge_id) <> " new optimal step_size: " <> inspect(optimal_step_size))
-
-    # 1. Remove this edge from the running_edges
-    running_edges = List.delete(Map.get(state,"running_edges"), edge_id)
-
-    # 2. Add the returned_data to the step_calculated_data map.
-    step_calculated_data = Map.get(state,"step_calculated_data")
-
-    edge_step_calculated_data = case Map.has_key?(step_calculated_data,edge_id) do
-
-        true -> Map.get(step_calculated_data,edge_id)
-        false -> %{}
-
+    # If the error estimate is larger than the current step_max_error, set this, and the step_min_optimal_step_size to the returned values.
+    step_max_error = Map.get(state,"step_max_error")
+    error_estimate = Map.get(returned_data,"error_estimate")
+    state = case {error_estimate,step_max_error} do
+      {a,b} when (a > b) -> state = Map.put(state,"step_max_error",error_estimate)
+                            Map.put(state,"step_min_optimal_step_size", Map.get(returned_data,"optimal_step_size"))
+      _ -> state
     end
-
-    # Parse the specific data
-    state = case subfunction_type do
-      # Add the error sum for this step.
-      :calculate_weighted_average_and_error -> parse_returned_error_and_step_size(state,returned_data)
-      nil -> state
-    end
-
-    #edge_step_calculated_data = Map.get(step_calculated_data,edge_id)
-    edge_step_calculated_data = Enum.reduce(returned_data,edge_step_calculated_data,fn({key,value},acc) ->
-      Map.put(acc,key,value)
-    end)
-    #step_calculated_data = Map.put(step_calculated_data,edge_id,edge_step_calculated_data)
-    state = Map.put(state,"step_calculated_data",Map.put(step_calculated_data,edge_id,edge_step_calculated_data))
-
-
-    # 4. If more running edges, do nothing.
-    #    If no more subfunction steps, complete timestep
-    #    Else run the next subfunction step
-    state = case {length(running_edges),Map.get(state,"current_subfunction_step")} do
-
-      {a,_} when a > 0 -> Map.put(state,"running_edges",running_edges)
-
-      {a,:complete} when a == 0 -> check_errors(state)
-
-      _ -> run_subfunction_sequence(state)
-
-    end
-
-    {:noreply, state}
 
   end
 
@@ -228,7 +148,7 @@ defmodule Colins.Solvers.ExplicitSolverServer do
     mesh_size = Map.get(state,"mesh_size")
     step_calculated_data = Map.get(state,"step_calculated_data")
 
-   # Spawn each edge process and populate the running_edges
+    # Spawn each edge process and populate the running_edges
     running_edges = Enum.reduce(Map.get(state,"edge_definitions"),[],fn({edge_id,edge_definition},acc) ->
 
       # 1. Get the edge dynamic node data
@@ -317,5 +237,88 @@ defmodule Colins.Solvers.ExplicitSolverServer do
     #IO.inspect(state)
     #System.halt(0)
   end
+
+
+  def handle_cast({:run_edges,timepoint,step_size},state) do
+
+    # 1. If no edge definitions, get them and store them.
+
+    #IO.inspect("timepoint to run")
+    #IO.inspect(timepoint)
+
+    state = Map.put(state,"current_step_size",step_size)
+    state = Map.put(state,"current_timepoint",timepoint)
+    state = Map.put(state,"step_min_optimal_step_size",step_size)
+
+
+    # 2. Run the subfunction sequence
+
+    {:noreply,run_subfunction_sequence(state)}
+
+  end
+
+  def handle_cast(:write_edges,state) do
+
+    Enum.map(Map.get(state,"edge_definitions"),fn({edge_id,_}) ->
+
+      Colins.Edges.EdgeData.write_to_file(edge_id)
+    end)
+
+    {:noreply,state}
+
+  end
+
+
+  # When an edge completes, take the returned_data and add it to the step_calculated_data map.
+  # step_calculated_data = {edge_id => {"k1" => 0.121, "k2" => 0.322} }
+  def handle_cast({:notify_edge_complete,edge_id,returned_data,subfunction_type},state) do
+
+    #Logger.debug("\n " <> inspect(edge_id) <> " new optimal step_size: " <> inspect(optimal_step_size))
+
+    # 1. Remove this edge from the running_edges
+    running_edges = List.delete(Map.get(state,"running_edges"), edge_id)
+
+    # 2. Add the returned_data to the step_calculated_data map.
+    step_calculated_data = Map.get(state,"step_calculated_data")
+
+    edge_step_calculated_data = case Map.has_key?(step_calculated_data,edge_id) do
+
+        true -> Map.get(step_calculated_data,edge_id)
+        false -> %{}
+
+    end
+
+    # Parse the specific data
+    state = case subfunction_type do
+      # Add the error sum for this step.
+      :calculate_weighted_average_and_error -> parse_returned_error_and_step_size(state,returned_data)
+      nil -> state
+    end
+
+    #edge_step_calculated_data = Map.get(step_calculated_data,edge_id)
+    edge_step_calculated_data = Enum.reduce(returned_data,edge_step_calculated_data,fn({key,value},acc) ->
+      Map.put(acc,key,value)
+    end)
+    #step_calculated_data = Map.put(step_calculated_data,edge_id,edge_step_calculated_data)
+    state = Map.put(state,"step_calculated_data",Map.put(step_calculated_data,edge_id,edge_step_calculated_data))
+
+
+    # 4. If more running edges, do nothing.
+    #    If no more subfunction steps, complete timestep
+    #    Else run the next subfunction step
+    state = case {length(running_edges),Map.get(state,"current_subfunction_step")} do
+
+      {a,_} when a > 0 -> Map.put(state,"running_edges",running_edges)
+
+      {a,:complete} when a == 0 -> check_errors(state)
+
+      _ -> run_subfunction_sequence(state)
+
+    end
+
+    {:noreply, state}
+
+  end
+
 
 end

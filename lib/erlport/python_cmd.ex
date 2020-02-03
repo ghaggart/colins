@@ -15,7 +15,7 @@ defmodule Colins.Erlport.PythonCmd do
   def differentiate(expr_string,var_string) do
 
     script_path = Path.join([Path.dirname(__ENV__.file),"python","modules","differentiate.py"])
-    { python_yaml, error_code } = System.cmd(python_path(),[script_path,convert_math_elixir_to_python(expr_string),var_string])
+    { python_yaml, _ } = System.cmd(python_path(),[script_path,convert_math_elixir_to_python(expr_string),var_string])
     [ partial_derivative_function | _ ] = YamlElixir.read_all_from_string(python_yaml)
     partial_derivative_function
 
@@ -29,7 +29,7 @@ defmodule Colins.Erlport.PythonCmd do
   def import_config_from_sbml(model_filename) do
 
     script_path = Path.join([Path.dirname(__ENV__.file),"python","modules","import_from_sbml.py"])
-    { python_yaml, error_code } = System.cmd(python_path(),[script_path,model_filename])
+    { python_yaml, _ } = System.cmd(python_path(),[script_path,model_filename])
     [ yaml_config | _ ] = YamlElixir.read_all_from_string(python_yaml,atoms: true)
     yaml_config
 

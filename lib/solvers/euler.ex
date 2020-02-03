@@ -4,7 +4,7 @@ defmodule Colins.Solvers.Euler do
     @moduledoc false
 
 
-    def solve(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,_local_error_maximum) do
+    def solve(solver_id,edge_id,edge_definition,node_data,_step_calculated_data,step_size,_timepoint,_mesh_size,_local_error_maximum) do
 
         ##IO.inspect("Solver starting")
 
