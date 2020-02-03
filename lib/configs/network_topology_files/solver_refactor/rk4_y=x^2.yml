@@ -1,0 +1,25 @@
+---
+
+# y = x^2
+# dy/dx = 2x
+
+partitions:
+    1:
+        solver_type: ODE
+        start_step_size: 0.1
+        local_error_maximum: 0.5
+
+nodes:
+    :node_one:
+        initial_value: 0
+    :timepoint:
+        initial_value: 0
+edges:
+    :y_equals_x:
+        partition: 1
+        inputs:
+            input1: :timepoint
+        #lambda: fn(arg1) -> (arg2 ^ arg3) end
+        lambda: fn(input1) -> (input1 * 2) end
+        outputs:
+            :node_one: add

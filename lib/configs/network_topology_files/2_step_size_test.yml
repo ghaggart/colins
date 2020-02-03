@@ -1,0 +1,29 @@
+---
+
+nodes:
+    :node_one:
+        initial_value: 1
+    :node_two:
+        initial_value: 8
+edges:
+    :edge_one_multiply_to_one:
+        inputs:
+            arg1:
+                - :get_value
+                - :node_one
+        lambda: fn(arg1) -> (arg1 * 2) end
+        targets:
+                :node_one: add
+
+    :edge_two_multiply_to_two:
+            inputs:
+                arg1:
+                    - :get_value
+                    - :node_two
+            lambda: fn(arg1) -> (arg1 * 4) end
+            targets:
+                :node_two: add
+solvers:
+    :AdaptiveRungeKutta4:
+        start_step_size: 1.0
+        mesh_siz: 0.1

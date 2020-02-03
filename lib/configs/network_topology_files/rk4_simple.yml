@@ -1,0 +1,18 @@
+---
+
+    nodes:
+        :node_one:
+            initial_value: 1
+    edges:
+        :edge_one_multiply_to_two:
+            solver:
+                solver_type: AdaptiveRungeKutta4
+                start_step_size: 1.0
+                local_error_maximum: 0.1
+            inputs:
+                arg1:
+                    - :get_value
+                    - :node_one
+            lambda: fn(arg1) -> (arg1 * 2) end
+            targets:
+                :node_one: add

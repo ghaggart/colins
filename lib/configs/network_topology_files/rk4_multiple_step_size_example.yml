@@ -1,0 +1,108 @@
+---
+
+# dy/dx = (x-y)/2
+# Example taken from here: https://www.geeksforgeeks.org/runge-kutta-4th-order-method-solve-differential-equation/
+
+
+nodes:
+    :node_y:
+        initial_value: 1
+    :timepoint:
+        initial_value: 0
+edges:
+    :y_equals_x:
+        solver:
+            #solver_type: AdaptiveRungeKutta4
+            solver_type: RungeKutta4
+            start_step_size: 0.01
+            local_error_maximum: 0.5
+        inputs:
+            input1:  #x
+                - :dynamic
+                - :timepoint
+            input2:  #y
+                - :dynamic
+                - :node_y
+            input3:
+                - :constant
+                - 2
+        lambda: fn(input1,input2,input3) -> (input1 - input2)/input3 end
+        outputs:
+            :node_y: add
+
+    :e_equals_y:
+        solver:
+            #solver_type: AdaptiveRungeKutta4
+            solver_type: RungeKutta4
+            start_step_size: 0.1
+            local_error_maximum: 0.5
+        inputs:
+            input1:  #x
+                - :dynamic
+                - :timepoint
+            input2:  #y
+                - :dynamic
+                - :node_y
+            input3:
+                - :constant
+                - 2
+        lambda: fn(input1,input2,input3) -> (input1 - input2)/input3 end
+        outputs:
+            :node_y: add
+    :e_equals_x:
+        solver:
+            #solver_type: AdaptiveRungeKutta4
+            solver_type: AdaptiveRungeKutta4
+            start_step_size: 0.1
+            local_error_maximum: 0.5
+        inputs:
+            input1:  #x
+                - :dynamic
+                - :timepoint
+            input2:  #y
+                - :dynamic
+                - :node_y
+            input3:
+                - :constant
+                - 2
+        lambda: fn(input1,input2,input3) -> (input1 - input2)/input3 end
+        outputs:
+            :node_y: add
+    :x_equals_y:
+        solver:
+            #solver_type: AdaptiveRungeKutta4
+            solver_type: AdaptiveRungeKutta4
+            start_step_size: 0.01
+            local_error_maximum: 0.5
+        inputs:
+            input1:  #x
+                - :dynamic
+                - :timepoint
+            input2:  #y
+                - :dynamic
+                - :node_y
+            input3:
+                - :constant
+                - 2
+        lambda: fn(input1,input2,input3) -> (input1 - input2)/input3 end
+        outputs:
+            :node_y: add
+    :x_equals_e:
+        solver:
+            #solver_type: AdaptiveRungeKutta4
+            solver_type: AdaptiveRungeKutta4
+            start_step_size: 0.01
+            local_error_maximum: 0.5
+        inputs:
+            input1:  #x
+                - :dynamic
+                - :timepoint
+            input2:  #y
+                - :dynamic
+                - :node_y
+            input3:
+                - :constant
+                - 2
+        lambda: fn(input1,input2,input3) -> (input1 - input2)/input3 end
+        outputs:
+            :node_y: add

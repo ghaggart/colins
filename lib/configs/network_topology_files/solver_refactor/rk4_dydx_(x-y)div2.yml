@@ -1,0 +1,24 @@
+---
+
+# dy/dx = (x-y)/2
+# Example taken from here: https://www.geeksforgeeks.org/runge-kutta-4th-order-method-solve-differential-equation/
+
+partitions:
+    1:
+        solver_type: RungeKutta4
+        start_step_size: 0.01
+        local_error_maximum: 0.00002
+nodes:
+    :node_y:
+        initial_value: 1
+    :timepoint:
+        initial_value: 0
+edges:
+    :y_equals_x:
+        partition: 1
+        inputs:
+            input1: :timepoint
+            input2: :node_y
+        lambda: fn(input1,input2) -> (input1 - input2)/2 end
+        outputs:
+            :node_y: add

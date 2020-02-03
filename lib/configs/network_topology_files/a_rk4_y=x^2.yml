@@ -1,0 +1,29 @@
+---
+
+# y = x^2
+# dy/dx = 2x
+
+
+    nodes:
+        :node_one:
+            initial_value: 0
+        :timepoint:
+            initial_value: 0
+    edges:
+        :y_equals_x:
+            solver:
+                solver_type: RungeKuttaFehlberg
+                #solver_type: RungeKutta4
+                start_step_size: 0.01
+                local_error_maximum: 0.00002
+            inputs:
+                input1:
+                    - :dynamic
+                    - :timepoint
+                input2:
+                    - :constant
+                    - 2
+            #lambda: fn(arg1) -> (arg2 ^ arg3) end
+            lambda: fn(input1,input2) -> (input1 * input2) end
+            outputs:
+                :node_one: add
