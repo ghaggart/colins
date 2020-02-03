@@ -61,4 +61,6 @@ Either use as part of another Elixir/Erlang program, or use the command line exe
 ./colins -n '/path/to/model_file/' -f '/path/to/results' -l <max_timepoint> -m <mesh_size> -i <sim_name>
 
 
+
+## Copyright 
 © - Gordon Haggart 2020 - All rights reserved.
