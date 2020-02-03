@@ -68,7 +68,7 @@ defmodule Colins.Solvers.BackwardEuler do
       #end
       acc <> variable_name <> ","
     end)
-    dydfx_lambda_expr_string = Enum.reduce(partial_derivative_map,"",fn({variable_name,_expression},acc) ->
+    dydfx_lambda_expr_string = Enum.reduce(partial_derivative_map,"",fn({variable_name,expression},acc) ->
 
       variable_name = to_string(variable_name)
 

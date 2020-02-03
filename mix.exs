@@ -16,9 +16,9 @@ defmodule Colins.MixProject do
       package: package(),
       deps: deps(),
       name: "colins",
-      source_url: "https://github.com/ghaggart/colins"
+      source_url: "https://github.com/ghaggart/colins",
       docs: [
-      main:  "Colins", # The main page in the docs
+          main:  "Colins", # The main page in the docs
              # logo: "path/to/logo.png",
               extras: ["README.md"]
       ]

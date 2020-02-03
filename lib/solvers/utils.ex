@@ -44,7 +44,8 @@ defmodule Colins.Solvers.Utils do
       {data,subfunction_cache} = case Map.has_key?(subfunction_cache,node_id) do
           
             true -> {Map.get(subfunction_cache,node_id),subfunction_cache}
-            false -> {Colins.Nodes.MasterNode.get_timepoint_data(node_id,(timepoint - step_size)),Map.put(subfunction_cache,node_id,data)}
+            false ->  data = Colins.Nodes.MasterNode.get_timepoint_data(node_id,(timepoint - step_size))
+                      {data,Map.put(subfunction_cache,node_id,data)}
         end
 
 
@@ -219,7 +220,7 @@ defmodule Colins.Solvers.Utils do
               # If input_definition == {:dynamic,:timepoint}
               {_,node_id} when (node_id == :timepoint) -> {:get_subfunction_data,:timepoint,module,get_timepoint_parse_function(ki)}
               # If input_definition == {:dynamic,node_id}
-              {input_type,_} when (input_type == :dynamic) -> {:get_subfunction_data,node_id,solver_id,variable_names,module,get_output_parse_function(ki)}
+              {input_type,node_id} when (input_type == :dynamic) -> {:get_subfunction_data,node_id,solver_id,variable_names,module,get_output_parse_function(ki)}
               # Else
                 _ -> input_definition
 

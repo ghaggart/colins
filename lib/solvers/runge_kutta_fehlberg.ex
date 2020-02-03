@@ -300,14 +300,14 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
     end
 
-  def calculate_weighted_average_and_error(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,_timepoint,_mesh_size,local_error_maximum) do
+  def calculate_weighted_average_and_error(solver_id,edge_id,edge_definition,node_data,step_calculated_data,step_size,timepoint,_mesh_size,local_error_maximum) do
 
       #local_error_maximum = 1.0e-12
 
       inputs = Map.get(edge_definition,"inputs")
       outputs = Map.get(edge_definition,"outputs")
 
-    # output_var= Colins.Solvers.Utils.get_output_var(outputs)
+      output_var= Colins.Solvers.Utils.get_output_var(outputs)
 
       previous_timepoint_value = Map.get(node_data,:timepoint)
       k1 = Map.get(step_calculated_data,"k1")
