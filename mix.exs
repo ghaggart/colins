@@ -5,7 +5,7 @@ defmodule Colins.MixProject do
     [
       app: :colins,
       version: "0.1.0",
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       build_embedded: Mix.env == :dev,
       start_permanent: Mix.env == :dev,
      # build_embedded: Mix.env == :prod,
@@ -17,6 +17,11 @@ defmodule Colins.MixProject do
       deps: deps(),
       name: "colins",
       source_url: "https://github.com/ghaggart/colins"
+      docs: [
+      main:  "Colins", # The main page in the docs
+             # logo: "path/to/logo.png",
+              extras: ["README.md"]
+      ]
     ]
   end
 
@@ -37,7 +42,7 @@ defmodule Colins.MixProject do
       {:logger_file_backend, ">= 0.0.0"},
       {:math,">= 0.0.0"},
       {:erlport, "~> 0.9"},
-      {:ex_doc, "~> 0.18", only: :dev}
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
     ]
   end
 
