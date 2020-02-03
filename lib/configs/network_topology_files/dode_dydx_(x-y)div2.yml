@@ -3,7 +3,7 @@
 # dy/dx = (x-y)/2
 # Example taken from here: https://www.geeksforgeeks.org/runge-kutta-4th-order-method-solve-differential-equation/
 
-# dODE solver_type uses a special consideration :-
+# ODE solver_type uses a special consideration :-
     # a RungeKuttaFehlberg56 for non-stiff problems and a BackwardEuler method for stiff problems.
     # non-stiff = optimal_step_size >= 1.0e-6
     # stiff = optimal_step_size < 1.0e-6
@@ -11,7 +11,7 @@
 
 partitions:
     1:
-        solver_type: dODE
+        solver_type: ODE
         start_step_size: 0.1
         local_error_maximum: 1.0e-6
         local_error_minimum: 1.0e-12

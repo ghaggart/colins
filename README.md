@@ -18,7 +18,7 @@ Networks can be defined using SBML or the in-built, domain-agnostic language spe
 # Using adaptive deterministic solver (RKF56 and BackwardEuler) 
 partitions:
     1:
-        solver_type: dODE
+        solver_type: ODE
         start_step_size: 0.1
         local_error_maximum: 1.0e-6
         local_error_minimum: 1.0e-12

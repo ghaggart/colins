@@ -390,8 +390,8 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
 
   end
 
-  # If its dODE type, check which solver_type_running - explicit or implicit
-  def run_edges("dODE",partition,next_timepoint,current_step_size) do
+  # If its ODE type, check which solver_type_running - explicit or implicit
+  def run_edges("ODE",partition,next_timepoint,current_step_size) do
 
       case Map.get(partition,"solver_type_running") do
           "explicit" -> Colins.Solvers.ExplicitSolverServer.run_edges(Map.get(partition,"explicit_solver_id"),next_timepoint,current_step_size)

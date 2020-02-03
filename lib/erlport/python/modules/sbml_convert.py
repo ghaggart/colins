@@ -369,7 +369,7 @@ def import_from_sbml(sbml_filename):
     #new_P0 = 5.28e-13
     #nodes[":Paracetamol_APAP"]["initial_value"] = 5.28e-13
 
-    partitions = { 1: {"solver_type": "dODE",
+    partitions = { 1: {"solver_type": "ODE",
                        "start_step_size": 0.01,
                        "local_error_maximum": 1.0e-6,
                        "local_error_minimum": 1.0e-12,

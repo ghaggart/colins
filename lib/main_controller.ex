@@ -229,7 +229,7 @@ defmodule Colins.MainController do
 
     end
 
-    def build_solver_servers_for_partition("dODE",solver_id,partition_data,partition_id,mesh_size,edge_map,local_error_minimum,local_error_maximum,_explicit_list,_implicit_list) do
+    def build_solver_servers_for_partition("ODE",solver_id,partition_data,partition_id,mesh_size,edge_map,local_error_minimum,local_error_maximum,_explicit_list,_implicit_list) do
 
         [ _ | tail ] = String.split(Atom.to_string(solver_id),"_")
 
