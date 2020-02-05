@@ -5,7 +5,7 @@ require Math
 defmodule Colins.Configs.ConfigGenerator do
 
 
-    def build_config_with_topology(sim_id,max_timepoint,_results_folder,network_topology,mesh_size) do
+    def build_config_with_topology(sim_id,max_timepoint,_results_folder,network_topology,mesh_size,start_step_size \\ nil) do
 
       %{
         "sim_id" => sim_id,
@@ -18,7 +18,7 @@ defmodule Colins.Configs.ConfigGenerator do
 
     end
 
-    def build_config(sim_id,max_timepoint,results_folder,network_topology_config_file,mesh_size) do
+    def build_config(sim_id,max_timepoint,results_folder,network_topology_config_file,mesh_size,start_step_size \\ nil) do
 
        %{
           "sim_id" => sim_id,
@@ -27,52 +27,52 @@ defmodule Colins.Configs.ConfigGenerator do
           "node_type" => "particles",
           "mesh_size" => mesh_size,
 
-          "network_topology" => read_network_topology_from_file(network_topology_config_file)
+          "network_topology" => read_network_topology_from_file(network_topology_config_file,start_step_size)
 
             }
 
     end
 
-    def read_network_topology_from_sbml(filename) do
+    def read_network_topology_from_sbml(filename,start_step_size) do
 
       Logger.info("\nReading SBML file...")
 
       #[ topology | _ ] = YamlElixir.read_all_from_string(Colins.Erlport.Helper.import_config_from_sbml(filename),atoms: true)
       topology = Colins.Erlport.PythonCmd.import_config_from_sbml(filename)
-      sanitise_network_topology(topology)
+      sanitise_network_topology(topology,start_step_size)
 
     end
 
-    def read_network_topology_from_yaml(filename) do
+    def read_network_topology_from_yaml(filename,start_step_size) do
 
       Logger.info("\nReading network config file...")
 
-      YamlElixir.read_from_file(filename,atoms: true)
-      |> sanitise_network_topology
+      topology = YamlElixir.read_from_file(filename,atoms: true)
+      sanitise_network_topology(topology,start_step_size)
 
     end
 
-    def read_network_topology_from_file(filename) do
+    def read_network_topology_from_file(filename,start_step_size) do
 
       case Path.extname(String.downcase(filename)) do
 
-          a when (a == ".yml" or a == ".yaml") -> read_network_topology_from_yaml(filename)
-          a when (a == ".sbml" or a == ".xml") -> read_network_topology_from_sbml(filename)
+          a when (a == ".yml" or a == ".yaml") -> read_network_topology_from_yaml(filename,start_step_size)
+          a when (a == ".sbml" or a == ".xml") -> read_network_topology_from_sbml(filename,start_step_size)
       end
 
     end
 
-    def read_config_from_file(filename) do
+    def read_config_from_file(filename,start_step_size) do
 
         config = YamlElixir.read_from_file(filename,atoms: true)
 
-        network_topology = sanitise_network_topology(Map.get(config,"network_topology"))
+        network_topology = sanitise_network_topology(Map.get(config,"network_topology"),start_step_size)
 
         Map.put(config,"network_topology",network_topology)
 
     end
 
-    def sanitise_network_topology(network_topology) do
+    def sanitise_network_topology(network_topology,start_step_size) do
 
         #IO.inspect(network_topology)
 
@@ -102,6 +102,13 @@ defmodule Colins.Configs.ConfigGenerator do
         processed_partitions = Enum.reduce(partitions,%{},fn({partition_id,partition_data},acc) ->
 
             partition_data = Map.put(partition_data,"solver_id",build_solver_id(Map.get(partition_data,"solver_type"),partition_id,Map.get(partition_data,"local_error_maximum")))
+
+            partition_data = case start_step_size do
+
+                nil -> partition_data
+                _ -> Map.put(partition_data,"start_step_size",String.to_float(start_step_size))
+
+            end
             Map.put(acc,partition_id,partition_data)
 
         end)
