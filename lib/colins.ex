@@ -27,7 +27,7 @@ defmodule Colins do
 
         #Colins.Supervisors.AppSupervisor.start_link()
 
-        {opts,_,_}= OptionParser.parse(args,switches: [:network_topology_file,:sim_id,:sim_length,:results_folder,:mesh_size,:start_step_size],aliases: [n: :network_topology_file, i: :sim_id, f: :results_folder, l: :sim_length, m: :mesh_size, s: :start_step_size])
+        {opts,_,_}= OptionParser.parse(args,switches: [network_topology_file: :string,sim_id: :string,sim_length: :float,results_folder: :string,mesh_size: :float,start_step_size: :float],aliases: [n: :network_topology_file, i: :sim_id, f: :results_folder, l: :sim_length, m: :mesh_size, s: :start_step_size])
 
         opts = case opts[:start_step_size] do
             nil -> opts ++ [start_step_size: nil]
@@ -36,7 +36,7 @@ defmodule Colins do
 
         Colins.start(nil, nil)
 
-        Colins.MainController.setup_simulation(Colins.Configs.ConfigGenerator.build_config(opts[:sim_id],String.to_integer(opts[:sim_length]),opts[:results_folder],opts[:network_topology_file],String.to_float(opts[:mesh_size]),opts[:start_step_size]))
+        Colins.MainController.setup_simulation(Colins.Configs.ConfigGenerator.build_config(opts[:sim_id],opts[:sim_length],opts[:results_folder],opts[:network_topology_file],opts[:mesh_size],opts[:start_step_size]))
         #Colins.MainController.setup_simulation(Colins.Configs.TestConfigs.build_config(String.to_integer(opts[:sim_id]),String.to_integer(opts[:sim_length])))
 
         Colins.Timesteps.AdaptiveMultiRateTimestepController.start_simulation()
