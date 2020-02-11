@@ -47,9 +47,11 @@ defmodule Colins.MixProject do
   end
 
   def escript do
-      [main_module: Colins ]
-      # Specify the number of schedulers available here:
-      #emu_args: "+S 1"]
+      [ main_module: Colins,
+        shebang: "#! /usr/bin/env /apps/erlang/19.3/bin/escript\n",
+
+        # Specify the number of schedulers available here:
+        emu_args: "+S 1"]
   end
 
  def brewery do
