@@ -98,7 +98,9 @@ defmodule Colins.Nodes.Controller do
 
     def handle_cast(:reset_timestep_data,state) do
 
-        Enum.map(Map.get(state,"node_map"),fn({node_id,_node_data}) ->
+        Enum.map(Map.get(state,"node_map"),fn({node_id,node_data}) ->
+
+            IO.inspect(node_id)
 
             Colins.Nodes.MasterNode.reset_timestep_data(node_id)
         end)

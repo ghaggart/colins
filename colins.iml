@@ -59,5 +59,6 @@
     <orderEntry type="library" name="makeup" level="project" />
     <orderEntry type="library" name="benchee" level="project" />
     <orderEntry type="library" name="nimble_parsec" level="project" />
+    <orderEntry type="library" name="inch_ex" level="project" />
   </component>
 </module>

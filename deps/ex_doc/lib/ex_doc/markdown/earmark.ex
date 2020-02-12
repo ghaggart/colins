@@ -4,15 +4,6 @@ defmodule ExDoc.Markdown.Earmark do
   """
   @behaviour ExDoc.Markdown
 
-  # Callback implementations
-  def assets(arg), do: ExDoc.Highlighter.assets(arg)
-
-  def before_closing_head_tag(arg), do: ExDoc.Highlighter.before_closing_head_tag(arg)
-
-  def before_closing_body_tag(arg), do: ExDoc.Highlighter.before_closing_body_tag(arg)
-
-  def configure(_), do: :ok
-
   @doc """
   Check if the Earmark Markdown parser module is available.
   """
@@ -33,10 +24,6 @@ defmodule ExDoc.Markdown.Earmark do
     * `:smartypants` - boolean. Turns on smartypants processing, so quotes become curly,
       two or three hyphens become en and em dashes, and so on. False by default
 
-    * `:plugins` - map of strings to modules. Register custom plugins to be used with
-      Earmark. See [Plugins](http://github.com/pragdave/earmark#plugins) for details on
-      how to write custom plugins.
-
     * `:highlight_tag` - the tag used for highlighting code, defaults to "span"
 
   """
@@ -48,8 +35,7 @@ defmodule ExDoc.Markdown.Earmark do
         file: Keyword.get(opts, :file),
         breaks: Keyword.get(opts, :breaks, false),
         smartypants: Keyword.get(opts, :smartypants, false),
-        pure_links: true,
-        plugins: Keyword.get(opts, :plugins, %{})
+        pure_links: true
       )
 
     text

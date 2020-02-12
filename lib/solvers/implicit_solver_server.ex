@@ -88,6 +88,8 @@ defmodule Colins.Solvers.ImplicitSolverServer do
 
     # 1. If no edge definitions, get them and store them.
 
+    Logger.debug(inspect(state))
+
     state = Map.put(state,"current_step_size",step_size)
     state = Map.put(state,"current_timepoint",timepoint)
     state = Map.put(state,"optimal_step_sizes",%{})
@@ -155,6 +157,8 @@ defmodule Colins.Solvers.ImplicitSolverServer do
   # When an edge completes, take the returned_data and add it to the step_calculated_data map.
   # step_calculated_data = {edge_id => {"k1" => 0.121, "k2" => 0.322} }
   def handle_cast({:notify_edge_complete,edge_id,returned_data,subfunction_type},state) do
+
+    Logger.debug("notify edge complete: " <> inspect(edge_id))
 
     # 1. Remove this edge from the running_edges
     running_edges = List.delete(Map.get(state,"running_edges"), edge_id)
@@ -321,7 +325,7 @@ defmodule Colins.Solvers.ImplicitSolverServer do
   # Run a linear subfunction sequence - ie calculating the first estimate
   def run_subfunction_sequence({:linear,function_name},state) do
 
-  #  IO.inspect("run_subfunction_sequence({:linear,function_name}")
+    IO.inspect("run_subfunction_sequence({:linear,function_name}")
 
     # 1. Get the step_dynamic_node_cache and set if not yet loaded
       # 2. Spawn the subfunction step with MFA and step_calculated_data (subfunction values ie k1)
@@ -371,7 +375,7 @@ defmodule Colins.Solvers.ImplicitSolverServer do
 
   def run_subfunction_sequence({:iterative,function_name},state) do
 
-   # IO.inspect("run_subfunction_sequence({:iterative,function_name}")
+    IO.inspect("run_subfunction_sequence({:iterative,function_name}")
 
     # 1. At the beginning of the step - check the sum of totals and how close they are to zero.
     # 2. If they are not close enough to zero, run the next iteration.

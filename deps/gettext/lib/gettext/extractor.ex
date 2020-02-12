@@ -54,9 +54,11 @@ defmodule Gettext.Extractor do
 
   Note that this function doesn't perform any operation on the filesystem.
   """
-  @spec extract(Macro.Env.t(), module, binary, binary | {binary, binary}, [binary]) :: :ok
-  def extract(%Macro.Env{} = caller, backend, domain, id, extracted_comments) do
-    translation = create_translation_struct(id, caller.file, caller.line, extracted_comments)
+  @spec extract(Macro.Env.t(), module, binary, binary, binary | {binary, binary}, [binary]) :: :ok
+  def extract(%Macro.Env{} = caller, backend, domain, msgctxt, id, extracted_comments) do
+    translation =
+      create_translation_struct(id, msgctxt, caller.file, caller.line, extracted_comments)
+
     ExtractorAgent.add_translation(backend, domain, translation)
   end
 
@@ -94,8 +96,7 @@ defmodule Gettext.Extractor do
             "the Gettext backend #{inspect(backend)} has the same :priv directory as " <>
               "#{inspect(other_backend)}, which means they will override each other. " <>
               "Please set the :priv option to different directories on use Gettext " <>
-              "inside each backend",
-            []
+              "inside each backend"
           )
 
         %{} ->
@@ -145,9 +146,10 @@ defmodule Gettext.Extractor do
     update_in(translation.references, &Enum.sort/1)
   end
 
-  defp create_translation_struct({msgid, msgid_plural}, file, line, extracted_comments) do
+  defp create_translation_struct({msgid, msgid_plural}, msgctxt, file, line, extracted_comments) do
     %PluralTranslation{
       msgid: [msgid],
+      msgctxt: if(msgctxt != nil, do: [msgctxt], else: nil),
       msgid_plural: [msgid_plural],
       msgstr: %{0 => [""], 1 => [""]},
       flags: MapSet.new([@extracted_translations_flag]),
@@ -156,9 +158,10 @@ defmodule Gettext.Extractor do
     }
   end
 
-  defp create_translation_struct(msgid, file, line, extracted_comments) do
+  defp create_translation_struct(msgid, msgctxt, file, line, extracted_comments) do
     %Translation{
       msgid: [msgid],
+      msgctxt: if(msgctxt != nil, do: [msgctxt], else: nil),
       msgstr: [""],
       flags: MapSet.new([@extracted_translations_flag]),
       references: [{Path.relative_to_cwd(file), line}],
@@ -258,13 +261,13 @@ defmodule Gettext.Extractor do
     """
     ## This file is a PO Template file.
     ##
-    ## `msgid`s here are often extracted from source code.
+    ## "msgid"s here are often extracted from source code.
     ## Add new translations manually only if they're dynamic
     ## translations that can't be statically extracted.
     ##
-    ## Run `mix gettext.extract` to bring this file up to
-    ## date. Leave `msgstr`s empty as changing them here as no
-    ## effect: edit them in PO (`.po`) files instead.
+    ## Run "mix gettext.extract" to bring this file up to
+    ## date. Leave "msgstr"s empty as changing them here as no
+    ## effect: edit them in PO (.po) files instead.
     """
   end
 
@@ -309,6 +312,7 @@ defmodule Gettext.Extractor do
     %Translation{
       msgid: old.msgid,
       msgstr: old.msgstr,
+      msgctxt: new.msgctxt,
       # The new in-memory translation has no new flags.
       flags: old.flags,
       # The new in-memory translation has no comments since it was extracted
@@ -316,7 +320,8 @@ defmodule Gettext.Extractor do
       comments: old.comments,
       # We don't care about the references of the old translation since the new
       # in-memory translation has all the actual and current references.
-      references: new.references
+      references: new.references,
+      extracted_comments: new.extracted_comments
     }
   end
 
@@ -327,11 +332,13 @@ defmodule Gettext.Extractor do
     # The logic here is the same as for %Translation{}s.
     %PluralTranslation{
       msgid: old.msgid,
+      msgctxt: new.msgctxt,
       msgid_plural: old.msgid_plural,
       msgstr: old.msgstr,
       flags: old.flags,
       comments: old.comments,
-      references: new.references
+      references: new.references,
+      extracted_comments: new.extracted_comments
     }
   end
 
@@ -354,6 +361,6 @@ defmodule Gettext.Extractor do
           "plural translation with msgid '#{IO.iodata_to_binary(t.msgid)}' has a non-empty msgstr"
   end
 
-  defp blank?(nil), do: true
-  defp blank?(str), do: IO.iodata_length(str) == 0
+  defp blank?(str) when not is_nil(str), do: IO.iodata_length(str) == 0
+  defp blank?(_), do: true
 end

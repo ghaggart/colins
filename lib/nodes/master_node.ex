@@ -460,4 +460,42 @@ defmodule Colins.Nodes.MasterNode do
     end
 
 
+    def handle_cast(:reset_timestep_data,state) do
+
+      # Reset the uncommitted_rates and solver_scratchpad.
+
+        state = Map.put(state,"uncommitted_rates",%{})
+        state = Map.put(state,"solver_scratchpad",%{})
+
+        {:noreply,state}
+
+    end
+
+    def handle_cast({:set_scratchpad_var,solver_id,variable_name,variable_value},state) do
+
+        solver_scratchpad = Map.get(state,"solver_scratchpad")
+        solver_data = Map.get(solver_scratchpad,solver_id)
+
+        # If the key doesnt exist, create it.
+        solver_data = case solver_data do
+
+            nil -> %{}
+            _ -> solver_data
+
+        end
+
+        solver_data = Map.put(solver_data,variable_name,variable_value)
+
+        solver_scratchpad = Map.put(solver_scratchpad,solver_id,solver_data)
+
+        state = Map.put(state,"solver_scratchpad",solver_scratchpad)
+
+        # IO.inspect(state)
+
+        {:noreply,state}
+
+    end
+
+
+
 end

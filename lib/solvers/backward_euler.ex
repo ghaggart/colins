@@ -108,6 +108,7 @@ defmodule Colins.Solvers.BackwardEuler do
     #%{'input1' => '1/2', 'input2' => '-1/2'}
 
     returned_values = %{"partial_derivative_lambda_string"=>partial_derivative_lambda_string,"partial_derivative_lambda"=>partial_derivative_lambda}
+    Logger.debug(inspect(returned_values))
     Colins.Solvers.ImplicitSolverServer.notify_edge_complete(solver_id,edge_id,returned_values,:build_newton_raphson_edge_definitions)
 
   end

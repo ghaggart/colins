@@ -7,7 +7,7 @@ ExDoc is a tool to generate documentation for your Elixir projects. To see an ex
 
 To learn about how to document your projects, see [Elixir's writing documentation page](https://hexdocs.pm/elixir/writing-documentation.html).
 
-To see all supported options, see the documetation for [mix docs](https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html)
+To see all supported options, see the documentation for [mix docs](https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html)
 
 ## Features
 
@@ -16,7 +16,7 @@ ExDoc ships with many features:
   * Automatically generates HTML and EPUB documents from your API documentation
   * Support for custom pages and guides (in addition to the API reference)
   * Support for custom grouping of modules, functions, and pages in the sidebar
-  * Generates HTML documentation is accessible online and offline
+  * Generates HTML documentation accessible online and offline
   * Responsive design with built-in layout for phones and tablets
   * Customizable logo on the generated documentation
   * Each documented entry contains a direct link back to the source code

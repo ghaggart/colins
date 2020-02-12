@@ -30,7 +30,7 @@ use Mix.Config
 #config :colins, python_path: "/rds/general/user/ghaggart/home/anaconda3/envs/colins/bin/python"
 
 # Path to the python environment containing python-libsbml, pyyaml and sympy
-config :colins, python_path: "~/workspace/phd/code/colins/lib/erlport/python/env/bin/python"
+config :colins, python_path: "/Users/ghaggart/workspace/phd/code/colins/lib/erlport/python/env/bin/python"
 
 #config :logger,
 #       level: :debug,

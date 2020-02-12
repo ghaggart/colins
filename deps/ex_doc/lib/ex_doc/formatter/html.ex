@@ -27,7 +27,6 @@ defmodule ExDoc.Formatter.HTML do
 
     nodes_map = %{
       modules: filter_list(:module, project_nodes),
-      exceptions: filter_list(:exception, project_nodes),
       tasks: filter_list(:task, project_nodes)
     }
 
@@ -47,7 +46,6 @@ defmodule ExDoc.Formatter.HTML do
         generate_search(nodes_map, config) ++
         generate_not_found(nodes_map, config) ++
         generate_list(nodes_map.modules, nodes_map, config) ++
-        generate_list(nodes_map.exceptions, nodes_map, config) ++
         generate_list(nodes_map.tasks, nodes_map, config) ++ generate_index(config)
 
     generate_build(all_files, build)
@@ -207,8 +205,7 @@ defmodule ExDoc.Formatter.HTML do
   defp default_assets(_config) do
     [
       {Assets.dist(), "dist"},
-      {Assets.fonts(), "dist/html/fonts"},
-      {Assets.markdown_processor_assets(), ""}
+      {Assets.fonts(), "dist/html/fonts"}
     ]
   end
 
@@ -393,7 +390,7 @@ defmodule ExDoc.Formatter.HTML do
   end
 
   def filter_list(:module, nodes) do
-    Enum.filter(nodes, &(not (&1.type in [:exception, :task])))
+    Enum.filter(nodes, &(&1.type != :task))
   end
 
   def filter_list(type, nodes) do

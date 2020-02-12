@@ -516,10 +516,10 @@ defmodule Colins.Timesteps.AdaptiveMultiRateTimestepController do
     IO.inspect(state)
 
     # Tell all the edges to write to file.
-    Enum.map(Map.get(state,"partitions"),fn({_partition_id,partition_data}) ->
+    #Enum.map(Map.get(state,"partitions"),fn({_partition_id,partition_data}) ->
 
-      Colins.Solvers.SolverServer.write_edges(Map.get(partition_data,"solver_id"))
-    end)
+    #  Colins.Solvers.SolverServer.write_edges(Map.get(partition_data,"solver_id"))
+    #end)
 
     Colins.Nodes.Controller.write_results_to_file()
 

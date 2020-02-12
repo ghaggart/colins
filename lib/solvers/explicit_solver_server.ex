@@ -129,6 +129,8 @@ defmodule Colins.Solvers.ExplicitSolverServer do
     # 1. Get the step_dynamic_node_cache and set if not yet loaded
     # 2. Spawn the subfunction step with MFA and step_calculated_data (subfunction values ie k1)
 
+    Logger.debug(inspect(state))
+
     timepoint = Map.get(state,"current_timepoint")
     step_size = Map.get(state,"current_step_size")
 
