@@ -54,11 +54,14 @@ def deps do
 end
 ```
 
+
+
 ## Usage
 
 Either use as part of another Elixir/Erlang program, or use the command line executable:
 
 ./colins -n '/path/to/model_file/' -f '/path/to/results' -l <max_timepoint> -m <mesh_size> -i <sim_name>
+
 
 
 

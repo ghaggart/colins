@@ -28,6 +28,10 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #     import_config "#{Mix.env}.exs"
 
+# Path to the python environment containing python-libsbml, pyyaml and sympy
+config :colins, python_path: "/rds/general/user/ghaggart/home/anaconda3/envs/colins/bin/python"
+#config :colins, python_modules: "python"
+
 config :logger,
        backends: [{LoggerFileBackend, :error_log}]
 
