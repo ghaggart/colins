@@ -24,7 +24,7 @@ defmodule Colins.Solvers.ExplicitSolverServer do
       Enum.concat(acc,Map.keys(Map.get(edge_definition,"outputs")))
     end)
     unique_dynamic_nodes = Enum.uniq(Enum.concat(all_input_nodes,all_output_nodes))
-    IO.inspect(unique_dynamic_nodes)
+    #IO.inspect(unique_dynamic_nodes)
 
     state = %{  "solver_id" => solver_id,
                 "solver_type" => solver_type,
@@ -155,7 +155,7 @@ defmodule Colins.Solvers.ExplicitSolverServer do
         Map.put(acc2,node_id,Map.get(step_dynamic_node_cache,node_id))
       end)
 
-      IO.inspect(step_dynamic_node_cache)
+     # IO.inspect(step_dynamic_node_cache)
 
       # 2. Spawn the solver
       #spawn(solver_name,current_subfunction_step,[stepper_id,edge_id,Map.get(stepper_edge,"lambda"),Map.get(stepper_edge,"inputs"),Map.get(stepper_edge,"targets"),step_size,current_timepoint,Map.get(state,"local_error_maximum")])

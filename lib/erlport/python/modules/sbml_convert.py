@@ -1,6 +1,11 @@
-import yaml
 from libsbml import *
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 
 #solver = {"solver_type": "RungeKutta4", "start_step_size": 0.01, "error_threshold": 0.00002}
@@ -85,7 +90,7 @@ def build_lambda_string(inputs,string):
 
     string = replace_function_inputs(string)
 
-    lbda = lbda + ") -> (" + string + ") end"
+    lbda = lbda + ") -> " + string + " end"
 
     return lbda
 
@@ -117,7 +122,7 @@ def build_inputs(model,lawstring,species_ids,definedFunctions,defined_parameters
     for string in string_split:
         is_function = False
 
-        if string in operators:
+        if string in operators or is_number(string):
             continue
 
         else:
@@ -174,8 +179,11 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
     for string in lambda_explode:
 
         if string in operators:
-
             lambda_output = lambda_output + string
+            continue
+
+        if is_number(string):
+            lambda_output = lambda_output + " " + string + " "
             continue
 
         is_function = False
@@ -199,7 +207,7 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
             string = string.replace(")","")
 
         if has_leading_bracket:
-            lambda_output = lambda_output + "("
+            lambda_output = lambda_output + " ( "
 
         entity_type = find_entity_type(string,species_ids,defined_parameters,compartment_sizes)
 
@@ -226,7 +234,14 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
             node_species_name = get_node_specie_name(string)
             lambda_output = lambda_output + " " + str(defined_parameters[node_species_name])
 
+        if has_trailing_bracket:
+            lambda_output = lambda_output + " ) "
+
+        #        lambda_output = lambda_output + " ) "
+
         lambda_output = lambda_output + " "
+
+        i = i + 1
 
     lbda = "fn("
 
@@ -242,7 +257,7 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
 
         p = p + 1
 
-    lbda = lbda + ") -> (" + lambda_output + ") end"
+    lbda = lbda + ") -> " + lambda_output + " end"
 
     return lbda
 
@@ -266,16 +281,19 @@ def build_reaction_network_as_odes(model,compartment_species,species_ids,compart
     defined_parameters = {}
     parameters = model.getListOfParameters()
     for parameter in parameters:
-        defined_parameters[parameter.id] = parameter.getValue()
+        parameter_id = parameter.getId()
+        defined_parameters[parameter_id] = parameter.getValue()
 
     initialAssignments = model.getListOfInitialAssignments()
     assignmentsForOverriding = {}
     for initialAssignment in initialAssignments:
-        assignmentsForOverriding[initialAssignment.id] = formulaToString(initialAssignment.math)
+        initial_assignment_id = initialAssignment.getId()
+        assignmentsForOverriding[initial_assignment_id] = formulaToString(initialAssignment.math)
 
     definedFunctionList = model.getListOfFunctionDefinitions()
     definedFunctions = []
     for definedFunction in definedFunctionList:
+        defined_function_id = definedFunction.getId()
         definedFunctions.append(definedFunction.id)
 
     odes = {}
@@ -292,26 +310,32 @@ def build_reaction_network_as_odes(model,compartment_species,species_ids,compart
 
         kineticLaw = reaction.getKineticLaw()
 
-        lawstring = formulaToString(kineticLaw.math)
+        lawstring = formulaToString(kineticLaw.getMath())
 
         reactants = reaction.getListOfReactants()
 
         for reactant in reactants:
-            edge_species_name = get_edge_specie_name(reactant.species)
-            odes[edge_species_name] = odes[edge_species_name] + " - ( " + lawstring + " )"
+            #     print(reactant.getStoichiometry())
+            edge_species_name = get_edge_specie_name(reactant.getSpecies())
+            #            odes[edge_species_name] = odes[edge_species_name] + " - ( " + lawstring + " )"
+            odes[edge_species_name] = odes[edge_species_name] + " - ( " + str(reactant.getStoichiometry()) + " * ( " + lawstring + " ) )"
 
         products = reaction.getListOfProducts()
 
         for product in products:
-            edge_species_name = get_edge_specie_name(product.species)
-            odes[edge_species_name] = odes[edge_species_name] + " + ( " + lawstring + " )"
+            #      print(product.getStoichiometry())
+            edge_species_name = get_edge_specie_name(product.getSpecies())
+            #     print(edge_species_name)
+            #            odes[edge_species_name] = odes[edge_species_name] + " + ( " + lawstring + " )"
+            odes[edge_species_name] = odes[edge_species_name] + " + ( " + str(product.getStoichiometry()) + " * ( " + lawstring + " ) )"
 
     ode_edges = {}
+
+    # print(odes)
 
     for var,ode in odes.items():
 
         inputs = build_inputs(model,ode,species_ids,definedFunctions,defined_parameters,compartment_sizes)
-
         lambda_string = build_ode_lambda_string(model,species_ids,ode,inputs,definedFunctions,defined_parameters,compartment_sizes)
 
         parsed_inputs = {}
@@ -320,9 +344,10 @@ def build_reaction_network_as_odes(model,compartment_species,species_ids,compart
 
         output_odes = {}
 
-        for product in products:
-            node_name = var.replace("pv_","")
-            output_odes[":" + node_name] = "add"
+        # What does this do?
+
+        node_name = var.replace("pv_","")
+        output_odes[":" + node_name] = "add"
 
         ode_edges[":" + var] = {'inputs':parsed_inputs, 'lambda':lambda_string, 'outputs':output_odes, 'partition':1 }
 
@@ -340,14 +365,15 @@ def import_from_sbml(sbml_filename):
     compartment_species = {}
     compartment_sizes = {}
     for compartment in compartments:
-        compartment_sizes[compartment.id] = compartment.getSize()
-        compartment_species[compartment.id] = {}
+        compartment_id = compartment.getId()
+        compartment_sizes[compartment_id] = compartment.getSize()
+        compartment_species[compartment_id] = {}
 
     species = model.getListOfSpecies()
     species_ids = []
     all_species = {}
     for specie in species:
-        id = specie.id
+        id = specie.getId()
         species_ids.append(id)
         initialConcentration = specie.getInitialConcentration()
         compartment = specie.getCompartment()
@@ -361,6 +387,7 @@ def import_from_sbml(sbml_filename):
         compartment_species[compartment] = existing_species
 
     ode_edges = build_reaction_network_as_odes(model,compartment_species,species_ids,compartment_sizes)
+
     nodes = {}
 
     for id,value in all_species.items():
