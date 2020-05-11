@@ -52,12 +52,22 @@ defmodule Colins.Configs.ConfigGenerator do
 
     end
 
+    #def read_network_topology_from_antimony(filename,start_step_size) do
+
+    #  Logger.info("\nReading antimony file...")
+
+    #  topology = YamlElixir.read_from_file(filename,atoms: true)
+    #  sanitise_network_topology(topology,start_step_size)
+
+    #end
+
     def read_network_topology_from_file(filename,start_step_size) do
 
       case Path.extname(String.downcase(filename)) do
 
           a when (a == ".yml" or a == ".yaml") -> read_network_topology_from_yaml(filename,start_step_size)
           a when (a == ".sbml" or a == ".xml") -> read_network_topology_from_sbml(filename,start_step_size)
+          #a when (a == ".txt" or a == ".text") -> read_network_topology_from_antimony(filename,start_step_size)
       end
 
     end
@@ -169,6 +179,5 @@ defmodule Colins.Configs.ConfigGenerator do
 
                  }
     end
-
 
 end

@@ -27,7 +27,6 @@ defmodule Colins.Solvers.RungeKuttaFehlberg do
 
       zk+1 = yk + (16/35 * k1) + (6656/12825 * k3) + (28561/56430 * k4) - (9/50 * k5) + (2/55 * k6)
 
-
       The error estimate is the difference between these 2 values:
 
       error = zk+1 - yk+1

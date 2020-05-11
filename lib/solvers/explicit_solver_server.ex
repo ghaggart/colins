@@ -16,22 +16,15 @@ defmodule Colins.Solvers.ExplicitSolverServer do
     solver_subfunction_sequence = apply(solver_module_name,:get_solve_sequence,[])
 
     # Get the unique dynamic node list for loading data at first subfunction step
-    unique_dynamic_nodes = Enum.reduce(edge_definitions,[],fn({_edge_id,edge_definition},acc) ->
-      # get edge inputs, for each get value, check if in acc, if not add.
-      acc = Enum.reduce(Map.get(edge_definition,"inputs"),acc,fn({_input_name,node_id},_acc2) ->
-        case Enum.member?(acc, node_id) do
-          false -> [ node_id | acc ]
-          true -> acc
-        end
-      end)
-
-      Enum.reduce(Map.get(edge_definition,"outputs"),acc,fn({node_id,_add_or_subtract},_acc2) ->
-        case Enum.member?(acc, node_id) do
-          false -> [ node_id | acc ]
-          true -> acc
-        end
-      end)
+    all_input_nodes = Enum.reduce(edge_definitions,[],fn({_edge_id,edge_definition},acc) ->
+      Enum.concat(acc,Map.values(Map.get(edge_definition,"inputs")))
     end)
+    all_output_nodes = Enum.reduce(edge_definitions,[],fn({_edge_id,edge_definition},acc) ->
+#      IO.inspect(Map.get(edge_definition,"outputs"))
+      Enum.concat(acc,Map.keys(Map.get(edge_definition,"outputs")))
+    end)
+    unique_dynamic_nodes = Enum.uniq(Enum.concat(all_input_nodes,all_output_nodes))
+    IO.inspect(unique_dynamic_nodes)
 
     state = %{  "solver_id" => solver_id,
                 "solver_type" => solver_type,
@@ -161,6 +154,8 @@ defmodule Colins.Solvers.ExplicitSolverServer do
       node_data = Enum.reduce(Map.get(edge_definition,"outputs"),node_data,fn({node_id,add_or_subtract},acc2) ->
         Map.put(acc2,node_id,Map.get(step_dynamic_node_cache,node_id))
       end)
+
+      IO.inspect(step_dynamic_node_cache)
 
       # 2. Spawn the solver
       #spawn(solver_name,current_subfunction_step,[stepper_id,edge_id,Map.get(stepper_edge,"lambda"),Map.get(stepper_edge,"inputs"),Map.get(stepper_edge,"targets"),step_size,current_timepoint,Map.get(state,"local_error_maximum")])

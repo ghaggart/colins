@@ -54,7 +54,25 @@ def deps do
 end
 ```
 
+Create a python environment containing the following packages:
 
+sympy
+python-libsbml
+pyyaml
+
+In your dev.exs or prod.exs file specify the python_path:
+
+```elixir
+config :colins, python_path: "/rds/general/user/ghaggart/home/anaconda3/envs/colins/bin/python"
+```
+
+If you plan to use COLINS as a standalone executable, you must compile into an escript.
+
+To do so, run the following command:
+
+cd colins
+rm -rf deps && rm -rf _build
+mix deps.get && MIX_ENV=prod mix compile && MIX_ENV=prod mix escript.build
 
 ## Usage
 

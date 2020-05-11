@@ -20,23 +20,13 @@ defmodule Colins.Solvers.ImplicitSolverServer do
     {solver_module_name,_} = Code.eval_string("Colins.Solvers." <> solver_type)
     solver_subfunction_sequence = apply(solver_module_name,:get_solve_sequence,[])
 
-    # Get the unique dynamic node list for loading data at first subfunction step
-    unique_dynamic_nodes = Enum.reduce(edge_definitions,[],fn({edge_id,edge_definition},acc) ->
-      # get edge inputs, for each get value, check if in acc, if not add.
-      acc = Enum.reduce(Map.get(edge_definition,"inputs"),acc,fn({input_name,node_id},acc2) ->
-        case Enum.member?(acc, node_id) do
-          false -> [ node_id | acc ]
-          true -> acc
-        end
-      end)
-
-      Enum.reduce(Map.get(edge_definition,"outputs"),acc,fn({node_id,add_or_subtract},acc2) ->
-        case Enum.member?(acc, node_id) do
-          false -> [ node_id | acc ]
-          true -> acc
-        end
-      end)
+    all_input_nodes = Enum.reduce(edge_definitions,[],fn({_edge_id,edge_definition},acc) ->
+      Enum.concat(acc,Map.values(Map.get(edge_definition,"inputs")))
     end)
+    all_output_nodes = Enum.reduce(edge_definitions,[],fn({_edge_id,edge_definition},acc) ->
+      Enum.concat(acc,Map.keys(Map.get(edge_definition,"outputs")))
+    end)
+    unique_dynamic_nodes = Enum.uniq(Enum.concat(all_input_nodes,all_output_nodes))
 
     state = %{  "solver_id" => solver_id,
                 "solver_type" => solver_type,
