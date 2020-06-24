@@ -100,7 +100,7 @@ defmodule Colins.Nodes.Controller do
 
         Enum.map(Map.get(state,"node_map"),fn({node_id,node_data}) ->
 
-            IO.inspect(node_id)
+            #IO.inspect(node_id)
 
             Colins.Nodes.MasterNode.reset_timestep_data(node_id)
         end)

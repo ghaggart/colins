@@ -70,27 +70,6 @@ defmodule Colins.Solvers.ExplicitSolverServer do
 
   def parse_returned_error_and_step_size(state,returned_data) do
 
-    #state = Map.put(state,"step_error_sum",Map.get(state,"step_error_sum") + Map.get(returned_data,"error_estimate"))
-
-    # Set the step_max_error
-    #   step_max_error = Map.get(state,"step_max_error")
-    #   error_estimate = Map.get(returned_data,"error_estimate")
-    #   step_max_error = case {error_estimate,step_max_error} do
-    #     {a,b} when (a > b) -> error_estimate
-    #     _ -> step_max_error
-    #   end
-    #   state = Map.put(state,"step_max_error",step_max_error)
-    #
-    #   # Set the step_min_optimal_step_size
-    #   step_min_optimal_step_size = Map.get(state,"step_min_optimal_step_size")
-    #   optimal_step_size = Map.get(returned_data,"optimal_step_size")
-    #   step_min_optimal_step_size = case {optimal_step_size,step_min_optimal_step_size} do
-    #     {a,b} when (a < b) -> optimal_step_size
-    #     _ -> step_min_optimal_step_size
-    #   end
-    #   Map.put(state,"step_min_optimal_step_size",step_min_optimal_step_size)
-    #
-
     # If the error estimate is larger than the current step_max_error, set this, and the step_min_optimal_step_size to the returned values.
     step_max_error = Map.get(state,"step_max_error")
     error_estimate = Map.get(returned_data,"error_estimate")
@@ -99,7 +78,6 @@ defmodule Colins.Solvers.ExplicitSolverServer do
                             Map.put(state,"step_min_optimal_step_size", Map.get(returned_data,"optimal_step_size"))
       _ -> state
     end
-
   end
 
   def generate_step_dynamic_node_cache(state,timepoint,step_size) do

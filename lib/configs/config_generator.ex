@@ -90,9 +90,12 @@ defmodule Colins.Configs.ConfigGenerator do
         edges = Map.get(network_topology,"edges")
         processed_edges = Enum.reduce(edges,%{},fn({edge_id,edge_data},acc) ->
 
+           # IO.inspect(edge_id)
+           # IO.inspect(edge_data)
+
             lambda_str = Colins.Utilities.Math.convert_math_to_elixir(Map.get(edge_data,"lambda"))
 
-            #IO.inspect(lambda_str)
+           # IO.inspect(lambda_str)
             {lambda,_} = Code.eval_string(lambda_str)
             #IO.inspect(lambda)
             new_edge_data = Map.put(edge_data,"lambda",lambda)

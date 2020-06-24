@@ -1,4 +1,5 @@
 from libsbml import *
+import re
 
 def is_number(s):
     try:
@@ -6,11 +7,6 @@ def is_number(s):
         return True
     except ValueError:
         return False
-
-
-#solver = {"solver_type": "RungeKutta4", "start_step_size": 0.01, "error_threshold": 0.00002}
-
-#solver = {"solver_type": "RungeKuttaFehlberg", "start_step_size": 0.001, "error_threshold": 0.00002}
 
 def get_edge_specie_name(specie_name):
     return "pv_" + specie_name
@@ -108,17 +104,13 @@ def build_input_string(i,has_leading_bracket,has_trailing_bracket):
 
     return input_string
 
-def build_inputs(model,lawstring,species_ids,definedFunctions,defined_parameters,compartment_sizes):
+def build_inputs(var,model,lawstring,species_ids,definedFunctions,defined_parameters,compartment_sizes):
 
     operators = ['*','/',"+","-","="," "]
 
     string_split = lawstring.split(" ")
-
-    # print(string_split)
     inputs = {}
-
     i = 1
-
     for string in string_split:
         is_function = False
 
@@ -134,14 +126,9 @@ def build_inputs(model,lawstring,species_ids,definedFunctions,defined_parameters
                 if function_string in definedFunctions:
                     parameter = definedFunctionCheck[1].replace(")","")
                     is_function = True
-            # 1. check what entity type it is, compartment, species, parameter.
-            # Build the edge inputs as necessary
-
-            # Some inputs have brackets - either ( or ). Remove these, then add back in to input string.
 
             has_leading_bracket = False
             has_trailing_bracket = False
-
 
             if "(" in string and not is_function:
                 has_leading_bracket = True
@@ -152,20 +139,20 @@ def build_inputs(model,lawstring,species_ids,definedFunctions,defined_parameters
 
             entity_type = find_entity_type(string,species_ids,defined_parameters,compartment_sizes)
 
-            if entity_type == 'species':
+        if entity_type == 'species':
 
-                input_string = build_input_string(i,has_leading_bracket,has_trailing_bracket)
-                node_specie_name = get_node_specie_name(string)
+            input_string = build_input_string(i,has_leading_bracket,has_trailing_bracket)
+            node_specie_name = get_node_specie_name(string)
 
-                if node_specie_name not in inputs:
+            if node_specie_name not in inputs:
 
-                    inputs[node_specie_name] = {"input_for_lambda":":" + get_node_specie_name(string),
-                                                "input_name":input_string}
-                    i = i + 1
+                inputs[node_specie_name] = {"input_for_lambda":":" + get_node_specie_name(string),
+                                            "input_name":input_string}
+                i = i + 1
 
     return inputs
 
-def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFunctions,defined_parameters,compartment_sizes):
+def build_ode_lambda_string(var,model,species_ids,lambda_string,inputs,definedFunctions,defined_parameters,compartment_sizes):
 
     lambda_explode = lambda_string.split(" ")
 
@@ -174,8 +161,9 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
     i = 1
     contains_function = False
 
-    lambda_output = ""
+    previous_was_function = False
 
+    lambda_output = ""
     for string in lambda_explode:
 
         if string in operators:
@@ -195,19 +183,7 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
         if string in definedFunctions:
             string = definedFunctionCheck[1]
             is_function = True
-
-        has_leading_bracket = False
-        has_trailing_bracket = False
-
-        if "(" in string:
-            has_leading_bracket = True
-            string = string.replace("(","")
-        if ")" in string:
-            has_trailing_bracket = True
-            string = string.replace(")","")
-
-        if has_leading_bracket:
-            lambda_output = lambda_output + " ( "
+            contains_function = True
 
         entity_type = find_entity_type(string,species_ids,defined_parameters,compartment_sizes)
 
@@ -216,32 +192,24 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
             node_species_name = get_node_specie_name(string)
             lambda_input = inputs[node_species_name]
             input_name = lambda_input["input_name"]
-
             lambda_output = lambda_output + " " + input_name
 
         elif entity_type == 'compartment':
 
             lambda_output = lambda_output + " " + "1"
 
-        elif entity_type == 'function' or is_function:
-
-            # We know its a function - so just return the value
-            node_species_name = get_node_specie_name(string)
-            lambda_output = lambda_output + " " + str(defined_parameters[node_species_name])
-
         elif entity_type == 'parameter':
 
             node_species_name = get_node_specie_name(string)
             lambda_output = lambda_output + " " + str(defined_parameters[node_species_name])
 
-        if has_trailing_bracket:
-            lambda_output = lambda_output + " ) "
-
-        #        lambda_output = lambda_output + " ) "
-
         lambda_output = lambda_output + " "
-
         i = i + 1
+
+    if contains_function == True:
+        #            print(lambda_output)
+        lambda_output = lambda_output[:-1]
+
 
     lbda = "fn("
 
@@ -250,11 +218,8 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
 
         if p == 0:
             lbda = lbda + inputs[input]["input_name"]
-
         else:
-
             lbda = lbda + "," + inputs[input]["input_name"]
-
         p = p + 1
 
     lbda = lbda + ") -> " + lambda_output + " end"
@@ -262,19 +227,12 @@ def build_ode_lambda_string(model,species_ids,lambda_string,inputs,definedFuncti
     return lbda
 
 # Build the system of differential equations
-
 #X = the process variable for the species.
-
 #Loop through the reactions:
-
 #    For the reactants - concatenate the reaction function as a subtraction.
-
 #    ie dX/dt = (existing_function_definition) - new_reaction
-
 #    For the products - contatenate the reaction function as an addition.
-
 #    ie dX/dt = (existing_function_definition) + new_reaction
-
 #Write out the functions.
 def build_reaction_network_as_odes(model,compartment_species,species_ids,compartment_sizes):
 
@@ -309,42 +267,41 @@ def build_reaction_network_as_odes(model,compartment_species,species_ids,compart
     for reaction in reactions:
 
         kineticLaw = reaction.getKineticLaw()
-
         lawstring = formulaToString(kineticLaw.getMath())
+
+        #        need to inject a space between all entities
+        #        QRest * (CArt / VArt)
+        #1. inject extra spaces after and before brackets
+        #2. remove double spaces
+
+        lawstring = lawstring.replace("(","( ")
+        lawstring = lawstring.replace(")"," )")
+        lawstring = re.sub(' +', ' ',lawstring)
 
         reactants = reaction.getListOfReactants()
 
         for reactant in reactants:
-            #     print(reactant.getStoichiometry())
             edge_species_name = get_edge_specie_name(reactant.getSpecies())
-            #            odes[edge_species_name] = odes[edge_species_name] + " - ( " + lawstring + " )"
             odes[edge_species_name] = odes[edge_species_name] + " - ( " + str(reactant.getStoichiometry()) + " * ( " + lawstring + " ) )"
 
         products = reaction.getListOfProducts()
 
         for product in products:
-            #      print(product.getStoichiometry())
             edge_species_name = get_edge_specie_name(product.getSpecies())
-            #     print(edge_species_name)
-            #            odes[edge_species_name] = odes[edge_species_name] + " + ( " + lawstring + " )"
             odes[edge_species_name] = odes[edge_species_name] + " + ( " + str(product.getStoichiometry()) + " * ( " + lawstring + " ) )"
 
     ode_edges = {}
 
-    # print(odes)
-
     for var,ode in odes.items():
 
-        inputs = build_inputs(model,ode,species_ids,definedFunctions,defined_parameters,compartment_sizes)
-        lambda_string = build_ode_lambda_string(model,species_ids,ode,inputs,definedFunctions,defined_parameters,compartment_sizes)
+        inputs = build_inputs(var,model,ode,species_ids,definedFunctions,defined_parameters,compartment_sizes)
+        lambda_string = build_ode_lambda_string(var,model,species_ids,ode,inputs,definedFunctions,defined_parameters,compartment_sizes)
 
         parsed_inputs = {}
         for node_name, input_data in inputs.items():
             parsed_inputs[input_data['input_name']] = input_data['input_for_lambda']
 
         output_odes = {}
-
-        # What does this do?
 
         node_name = var.replace("pv_","")
         output_odes[":" + node_name] = "add"
@@ -380,9 +337,6 @@ def import_from_sbml(sbml_filename):
         specie_dict = {"initial_value":initialConcentration}
         existing_species = compartment_species[compartment]
         all_species[id] = specie_dict
-
-        # Parse this in to the YAML format for the nodes.
-
         existing_species[id] = specie_dict
         compartment_species[compartment] = existing_species
 
@@ -393,25 +347,14 @@ def import_from_sbml(sbml_filename):
     for id,value in all_species.items():
         nodes[":" + id] = value
 
-    #new_P0 = 5.28e-13
-    #nodes[":Paracetamol_APAP"]["initial_value"] = 5.28e-13
-
     partitions = { 1: {"solver_type": "ODE",
-                       "start_step_size": 0.01,
-                       "local_error_maximum": 1.0e-6,
+                       "start_step_size": 0.001,
+                       "local_error_maximum": 1.0e-9,
                        "local_error_minimum": 1.0e-12,
-                       "explicit_implicit_switch_step_size_tolerance":1.0e-6}
+                       "explicit_implicit_switch_step_size_tolerance":1.0e-9}
                    }
 
 
     config = {"nodes": nodes, "edges": ode_edges, "partitions":partitions}
-
-    #file_object  = open('./' + output_folder, "w")
-
-    #file_object.write("--- \n\n")
-
-    #file_object.write(yaml.dump(config,width=float("inf")))
-
-    #file_object.close()
 
     return config
