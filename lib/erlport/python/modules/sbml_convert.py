@@ -348,10 +348,10 @@ def import_from_sbml(sbml_filename):
         nodes[":" + id] = value
 
     partitions = { 1: {"solver_type": "ODE",
-                       "start_step_size": 0.001,
-                       "local_error_maximum": 1.0e-9,
+                       "start_step_size": 0.01,
+                       "local_error_maximum": 1.0e-6,
                        "local_error_minimum": 1.0e-12,
-                       "explicit_implicit_switch_step_size_tolerance":1.0e-9}
+                       "explicit_implicit_switch_step_size_tolerance":1.0e-3}
                    }
 
 
