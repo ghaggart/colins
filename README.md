@@ -1,4 +1,4 @@
-# Colins
+# Colins numerical simulator
 
 COLINS is a concurrent, adaptive, multi-rate, multi-method, numerical solver for dynamical systems. 
 
